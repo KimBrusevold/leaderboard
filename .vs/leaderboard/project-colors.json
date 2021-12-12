@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "892ae9a2-ac10-4c07-be1c-c5db475527dc": {
+      "ProjectGuid": "892ae9a2-ac10-4c07-be1c-c5db475527dc",
+      "DisplayName": "leaderboard.Server",
+      "ColorIndex": 0
+    },
+    "a32b1569-f65c-439d-80f0-5a7220d58cbb": {
+      "ProjectGuid": "a32b1569-f65c-439d-80f0-5a7220d58cbb",
+      "DisplayName": "leaderboard.Client",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}
