@@ -1,4 +1,5 @@
 using leaderboard.Server;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,10 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
-builder.Services.AddDbContext<LeaderboardContext>(options => 
-    options.UseSqlServer(builder.Configuration["ConnectionStrings:sql"])
-    );
+builder.Services.Configure<IConfiguration>(builder.Configuration);
 
 var app = builder.Build();
 
@@ -27,14 +25,6 @@ else
     app.UseHsts();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<LeaderboardContext>();
-    context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
-}
-
 
 app.UseHttpsRedirection();
 
@@ -43,9 +33,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapRazorPages();
-app.MapControllers();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
 app.MapFallbackToFile("index.html");
 
 app.Run();
