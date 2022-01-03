@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,14 @@ builder.Services.AddAuthentication(options =>
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:key"]))
         };
     });
+
+
+var settings = MongoClientSettings.FromConnectionString(builder.Configuration["ConnectionStrings:mongoSandbox"]);
+settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+var client = new MongoClient(settings);
+
+
+var database = client.
 
 var app = builder.Build();
 
