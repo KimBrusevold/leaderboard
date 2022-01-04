@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using leaderboard.Server.Models;
+using leaderboard.Shared;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -17,14 +21,24 @@ namespace leaderboard.Server.Controllers
         private readonly IConfiguration Configuration;
         private readonly HttpClient DiscordClient = new();
         private readonly Uri MainDiscordApiUri;
+        private readonly IMongoDatabase database;
 
-        public LoginController(IConfiguration configuration)
+        public LoginController(IConfiguration configuration, IMongoDatabase mongoDatabase)
         {
             Configuration = configuration;
             MainDiscordApiUri = new Uri((string)Configuration["Discord:url"]);
+            database = mongoDatabase;
         }
 
+        [Authorize]
         [HttpGet]
+        public ActionResult IsLoggedIn()
+        {
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
         public async Task<ActionResult> Login([FromBody] LoginData data)
         {
             var formData = new Dictionary<string, string>
@@ -58,7 +72,10 @@ namespace leaderboard.Server.Controllers
             if(userData == null)
                 return new BadRequestObjectResult(new {Reponse = "Could not retrieve information from Discord, is user authenticated?"});
 
-            
+
+            if (!await UserExists(userData.Value))
+                await CreateUser(userData.Value);
+
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, userData.Value.Username),
@@ -66,7 +83,6 @@ namespace leaderboard.Server.Controllers
                 new Claim(ClaimTypes.Role,"User")
             };
 
-            var userImage = await RetrieveAndSaveUserImage(userData.Value);
 
 
             var secretKey = Configuration["JWT:key"];
@@ -81,6 +97,34 @@ namespace leaderboard.Server.Controllers
                 );
 
             return Ok(new { Token = new JwtSecurityTokenHandler().WriteToken(token), Expires = DateTime.Now.AddHours(3) });
+
+        }
+
+        private async Task CreateUser(DiscordMe userData)
+        {
+            var userImage = await RetrieveAndSaveUserImage(userData);
+
+            var userCol = database.GetCollection<User>(CollectionNames.UserCollection);
+
+            var user = new User
+            {
+                DiscordId = userData.Id,
+                UserName = userData.Username,
+                Image = userImage,
+            };
+
+            await userCol.InsertOneAsync(user);
+        }
+
+        private async Task<bool> UserExists(DiscordMe userData)
+        {
+            var userCol = database.GetCollection<User>(CollectionNames.UserCollection);
+
+            var filter = Builders<User>.Filter.Eq("DiscordId", userData.Id);
+
+            var res = await userCol.FindAsync(filter);
+            return res.Any();
+
 
         }
 
@@ -110,16 +154,6 @@ namespace leaderboard.Server.Controllers
             var discordMe = await res.Content.ReadFromJsonAsync<DiscordMe>();
 
             return discordMe;
-        }
-
-        public readonly struct LoginData
-        {
-            public string Code { get; init; }
-
-            public LoginData(string code)
-            {
-                Code = code;
-            }
         }
 
         public readonly struct DiscordAuthResponse
