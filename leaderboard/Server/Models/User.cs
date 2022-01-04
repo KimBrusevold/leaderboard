@@ -1,12 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace leaderboard.Server.Models
 {
     public class User
     {
-        [Key]
-        public int UserId { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
+        [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
+        public string Id { get; set; }
+        public string DiscordId { get; set; }
+        public string UserName { get; set; }
+        [BsonDefaultValue(false)]
+        public bool IsAdmin { get; set; }
+        public byte[]? Image { get; set; }
     }
 }
