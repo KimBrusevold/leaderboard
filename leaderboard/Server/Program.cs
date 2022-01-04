@@ -1,8 +1,4 @@
-using leaderboard.Server;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System.Text;
@@ -36,11 +32,10 @@ builder.Services.AddAuthentication(options =>
 
 
 var settings = MongoClientSettings.FromConnectionString(builder.Configuration["ConnectionStrings:mongoSandbox"]);
-settings.ServerApi = new ServerApi(ServerApiVersion.V1);
 var client = new MongoClient(settings);
+IMongoDatabase database = client.GetDatabase("leaderboard");
 
-
-var database = client.
+builder.Services.AddSingleton<IMongoDatabase>(_ => database);
 
 var app = builder.Build();
 
