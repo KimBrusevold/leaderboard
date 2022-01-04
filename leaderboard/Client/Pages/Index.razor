@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using leaderboard.Shared
+@inject NavigationManager NavManager
+@inject HttpClient Http
 
 <PageTitle>Index</PageTitle>
 
@@ -6,4 +9,36 @@
 
 Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@if(string.IsNullOrWhiteSpace(AuthCode))
+{
+    <MudNavLink Href="/login">Log in</MudNavLink>
+}
+else
+{
+    <MudAlert Severity="Severity.Success">@AuthCode</MudAlert>
+}
+
+
+@code{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Code { get; set; }
+
+    string AuthCode = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Code))
+            return;
+
+        Console.WriteLine($"Code is {Code}");
+        var loginData = new LoginData(Code);
+
+        //var auth = await Http.GetFromJsonAsync<LoginResponse>("Login");
+        var res = await Http.PostAsJsonAsync("/api/Login",loginData);
+
+        var content = await res.Content.ReadFromJsonAsync<LoginResponse>();
+        AuthCode = content.Token;
+
+    }
+}
