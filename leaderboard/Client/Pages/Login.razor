@@ -1,0 +1,23 @@
+﻿@page "/login"
+@inject NavigationManager NavManager
+<PageTitle>Welcome! Log in to Leaderboard App</PageTitle>
+
+    <MudCard>
+        <MudCardContent>
+            <h2>Log In</h2>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="DiscordRedirect" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Log In With Discord</MudButton>
+        </MudCardActions>
+    </MudCard>
+
+
+@code {
+    private int currentCount = 0;
+
+    private void DiscordRedirect()
+    {
+        
+        NavManager.NavigateTo("https://discord.com/api/oauth2/authorize?client_id=923182861459288114&redirect_uri=https%3A%2F%2Flocalhost%3A7099&response_type=code&scope=identify%20email");
+    }
+}
