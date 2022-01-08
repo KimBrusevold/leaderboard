@@ -21,13 +21,14 @@ namespace leaderboard.Server.Controllers
         private readonly IConfiguration Configuration;
         private readonly HttpClient DiscordClient = new();
         private readonly Uri MainDiscordApiUri;
-        private readonly IMongoDatabase database;
-
-        public LoginController(IConfiguration configuration, IMongoDatabase mongoDatabase)
+        private readonly IMongoDatabase Database;
+        private readonly ILogger Logger;
+        public LoginController(IConfiguration configuration, IMongoDatabase mongoDatabase, ILogger<LoginController> logger)
         {
             Configuration = configuration;
             MainDiscordApiUri = new Uri((string)Configuration["Discord:url"]);
-            database = mongoDatabase;
+            Database = mongoDatabase;
+            Logger = logger;
         }
 
         [Authorize]
@@ -62,7 +63,7 @@ namespace leaderboard.Server.Controllers
             if (!res.IsSuccessStatusCode)
                 return Unauthorized(new {Reponse = "Could not authenticate against Discord \n" +await res.Content.ReadAsStringAsync()});
 
-
+            Logger.LogInformation("User is Authneticated");
             //Add check to see if user is logged in from before, then no need to get data from Discord
 
             var authResponse =await res.Content.ReadFromJsonAsync<DiscordAuthResponse>();
@@ -104,7 +105,7 @@ namespace leaderboard.Server.Controllers
         {
             var userImage = await RetrieveAndSaveUserImage(userData);
 
-            var userCol = database.GetCollection<User>(CollectionNames.UserCollection);
+            var userCol = Database.GetCollection<User>(CollectionNames.UserCollection);
 
             var user = new User
             {
@@ -118,7 +119,7 @@ namespace leaderboard.Server.Controllers
 
         private async Task<bool> UserExists(DiscordMe userData)
         {
-            var userCol = database.GetCollection<User>(CollectionNames.UserCollection);
+            var userCol = Database.GetCollection<User>(CollectionNames.UserCollection);
 
             var filter = Builders<User>.Filter.Eq("DiscordId", userData.Id);
 

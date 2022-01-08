@@ -9,6 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<IConfiguration>(builder.Configuration);
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+});
 
 builder.Services.AddAuthentication(options =>
     {
@@ -29,7 +34,6 @@ builder.Services.AddAuthentication(options =>
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:key"]))
         };
     });
-
 
 var settings = MongoClientSettings.FromConnectionString(builder.Configuration["ConnectionStrings:mongoSandbox"]);
 var client = new MongoClient(settings);
