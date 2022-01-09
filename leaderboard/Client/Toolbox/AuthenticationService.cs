@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 
 namespace leaderboard.Client.Toolbox;
 public class AuthenticationService : IAuthenticationService
@@ -49,6 +50,22 @@ public class AuthenticationService : IAuthenticationService
 
         ((AuthState)AuthStateProvider).NotifyUserLogout();
 
+    }
+
+    public string? GetAvatarIdClaim(AuthenticationState state)
+        => GetClaimValue(state.User.Claims, "DiscordAvatarId");
+
+    public string? GetUserDiscordIdClaim(AuthenticationState state)
+        => GetClaimValue(state.User.Claims, "DiscordId");
+    
+
+    private string? GetClaimValue(IEnumerable<Claim> claims, string type)
+    {
+        if (claims == null)
+            return null;
+
+        var claim = claims.Where(c => c.Type == type).FirstOrDefault();
+        return claim?.Value;
     }
 }
 

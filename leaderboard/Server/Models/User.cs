@@ -11,6 +11,6 @@ namespace leaderboard.Server.Models
         public string UserName { get; set; }
         [BsonDefaultValue(false)]
         public bool IsAdmin { get; set; }
-        public byte[]? Image { get; set; }
+        public string ImageId { get; set; }
     }
 }

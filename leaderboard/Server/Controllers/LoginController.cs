@@ -80,8 +80,10 @@ namespace leaderboard.Server.Controllers
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, userData.Value.Username),
+                new Claim("DiscordId", userData.Value.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role,"User")
+                new Claim(ClaimTypes.Role,"User"),
+                new Claim("DiscordAvatarId", userData.Value.Avatar)
             };
 
 
@@ -103,15 +105,13 @@ namespace leaderboard.Server.Controllers
 
         private async Task CreateUser(DiscordMe userData)
         {
-            var userImage = await RetrieveAndSaveUserImage(userData);
-
             var userCol = Database.GetCollection<User>(CollectionNames.UserCollection);
 
             var user = new User
             {
                 DiscordId = userData.Id,
                 UserName = userData.Username,
-                Image = userImage,
+                ImageId = userData.Avatar,
             };
 
             await userCol.InsertOneAsync(user);

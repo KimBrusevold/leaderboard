@@ -1,6 +1,7 @@
 ﻿@using leaderboard.Client.Toolbox
 @inherits LayoutComponentBase
 @inject IAuthenticationService AuthService
+
 <MudThemeProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
@@ -13,6 +14,7 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
+                <MudAvatar Image="@($"https://cdn.discordapp.com/avatars/{AuthService.GetUserDiscordIdClaim(context)}/{AuthService.GetAvatarIdClaim(context)}.png")" />
                 <MudButton Link="/logout" StartIcon="@Icons.Material.Filled.Logout" Color="Color.Inherit">Log Out</MudButton>
             </Authorized>
             <NotAuthorized>
@@ -24,7 +26,7 @@
 
     </MudDrawer>*@
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudContainer MaxWidth="MaxWidth.Large">
             @Body
         </MudContainer>
     </MudMainContent>

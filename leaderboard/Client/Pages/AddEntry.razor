@@ -5,7 +5,7 @@
 @inject HttpClient Client
 @attribute [Authorize]
 
-<div style="max-width: 600px;">
+<div style="width:100%; margin-top: 50px">
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
@@ -14,15 +14,16 @@
         </MudCardHeader>
         <MudCardContent>
             <MudForm>
-                <MudSelect Label="Select Track" @bind-Value="selectedTrack" >
-                    @if(tracks is not null)
-                    {
-                        @foreach (var track in tracks)
-                        {
-                            <MudSelectItem Value="@track">@track.Name</MudSelectItem>
-                        }       
-                    }
-                </MudSelect>
+                    <MudAutocomplete 
+                        T="Game" Label="Pick or search for Game" @bind-Value="selectedGame"
+                        SearchFunc="@SeachGame" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+
+                    </MudAutocomplete>
+                    <MudAutocomplete Disabled="@(selectedGame == null)"
+                        T="Track" Label="Pick or search for Game" @bind-Value="selectedTrack"
+                        SearchFunc="@SeachTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+
+                    </MudAutocomplete>
             </MudForm>
         </MudCardContent>
         
@@ -31,15 +32,45 @@
 </div>
 
 @code {
-    private IEnumerable<Track> tracks;
+    private IEnumerable<Game> games;
     private Track selectedTrack;
+    private Game selectedGame;
 
     private bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
-    {
-        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    games  = await Client.GetFromJsonAsync<IEnumerable<Game>>("api/game");
 
-        isLoading = false;
+    //    isLoading = false;
+    //}
+
+    private async Task<IEnumerable<Game>> SeachGame(string searchString)
+    {
+        if(games is null)
+            games = await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
+        if (string.IsNullOrWhiteSpace(searchString))
+            return games;
+
+        searchString = searchString.ToLower();
+
+        Console.WriteLine("Got: " + games.Count());
+        if (games is null)
+            return new List<Game>();
+
+
+        var matched = games.Where(game => game.Name.ToLower().Contains(searchString));
+        Console.WriteLine("Matches: " + matched.Count());
+
+        return matched; 
+    }
+    private async Task<IEnumerable<Track>> SeachTrack(string searchString)
+    {
+        if (selectedGame is null)
+            return new List<Track>();
+        if (string.IsNullOrWhiteSpace(searchString))
+            return selectedGame.Tracks;
+
+        return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower()));
     }
 }

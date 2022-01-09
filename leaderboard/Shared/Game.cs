@@ -9,15 +9,18 @@ using System.Threading.Tasks;
 
 namespace leaderboard.Shared
 {
-    public class Track
+    public class Game
     {
         [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
         public string Id { get; set; }
         public string Name { get; set; }
+        public List<Track> Tracks { get; set; }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return Name;
         }
     }
+
+    
 }
