@@ -1,0 +1,45 @@
+﻿@page "/addentry"
+@using Microsoft.AspNetCore.Authorization
+@using leaderboard.Shared
+
+@inject HttpClient Client
+@attribute [Authorize]
+
+<div style="max-width: 600px;">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h3">Add an entry to the leaderboard</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudForm>
+                <MudSelect Label="Select Track" @bind-Value="selectedTrack" >
+                    @if(tracks is not null)
+                    {
+                        @foreach (var track in tracks)
+                        {
+                            <MudSelectItem Value="@track">@track.Name</MudSelectItem>
+                        }       
+                    }
+                </MudSelect>
+            </MudForm>
+        </MudCardContent>
+        
+    </MudCard>
+    
+</div>
+
+@code {
+    private IEnumerable<Track> tracks;
+    private Track selectedTrack;
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
+
+        isLoading = false;
+    }
+}

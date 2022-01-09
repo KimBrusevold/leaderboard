@@ -1,0 +1,43 @@
+﻿@page "/loginaction"
+@using leaderboard.Client.Toolbox
+@using leaderboard.Shared
+
+@inject IAuthenticationService AuthService
+@inject HttpClient Http
+@inject Toolbox.LocalStorage Storage
+@inject NavigationManager NavManager
+
+@if(showAuthError)
+{
+    <MudAlert Severity="Severity.Error">Something went wrong! Try again? </MudAlert>    
+    
+}else{
+    <h2>Logging you Inn</h2>
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true"/>
+}
+
+
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Code { get; set; }
+
+    private bool showAuthError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        showAuthError = false;
+
+        var result = await AuthService.CheckLogin(Code);
+
+        if(result is not null)
+            NavManager.NavigateTo("/");
+        else
+        {
+            showAuthError = true;
+        }
+
+    }
+}

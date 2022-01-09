@@ -1,44 +1,15 @@
 ﻿@page "/"
 @using leaderboard.Shared
-@inject NavigationManager NavManager
-@inject HttpClient Http
-
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-@if(string.IsNullOrWhiteSpace(AuthCode))
-{
-    <MudNavLink Href="/login">Log in</MudNavLink>
-}
-else
-{
-    <MudAlert Severity="Severity.Success">@AuthCode</MudAlert>
-}
+@using Microsoft.AspNetCore.Authorization
+<h1>
+            Welcome!
+</h1>
+<AuthorizeView>
+        
+        <MudButton Color="Color.Primary" Link="/addentry">Add an entry.</MudButton>
+</AuthorizeView>
 
 
 @code{
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? Code { get; set; }
 
-    string AuthCode = null;
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (string.IsNullOrWhiteSpace(Code))
-            return;
-
-        Console.WriteLine($"Code is {Code}");
-        var loginData = new LoginData(Code);
-
-        //var auth = await Http.GetFromJsonAsync<LoginResponse>("Login");
-        var res = await Http.PostAsJsonAsync("/api/Login",loginData);
-
-        var content = await res.Content.ReadFromJsonAsync<LoginResponse>();
-        AuthCode = content.Token;
-
-    }
 }

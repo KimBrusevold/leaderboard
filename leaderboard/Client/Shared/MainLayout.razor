@@ -1,12 +1,24 @@
-﻿@inherits LayoutComponentBase
+﻿@using leaderboard.Client.Toolbox
+@inherits LayoutComponentBase
+@inject IAuthenticationService AuthService
 <MudThemeProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 
 <MudLayout>
-    <MudAppBar>
-        My Application
+    <MudAppBar Color="Color.Primary">
+        <MudText Color="Color.Inherit">Leaderboard</MudText>
+        @*Leaderboard*@
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudButton Link="/logout" StartIcon="@Icons.Material.Filled.Logout" Color="Color.Inherit">Log Out</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Link="/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Log In</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
     @*<MudDrawer Open="true">
 

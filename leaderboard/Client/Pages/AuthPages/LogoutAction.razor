@@ -1,0 +1,19 @@
+﻿@page "/logout"
+@using leaderboard.Client.Toolbox
+@inject IAuthenticationService AuthService
+@inject NavigationManager NavManager
+
+<h2>Logging you out</h2>
+
+<MudProgressCircular Color="Color.Dark" Size="Size.Large" Indeterminate="true"/>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+
+        await Task.FromResult(AuthService.Logut());
+
+        NavManager.NavigateTo("/");
+
+    }
+}
