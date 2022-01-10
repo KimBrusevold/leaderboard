@@ -16,16 +16,36 @@
             <MudForm>
                     <MudAutocomplete 
                         T="Game" Label="Pick or search for Game" @bind-Value="selectedGame"
-                        SearchFunc="@SeachGame" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+                        SearchFunc="@SearchGame" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
 
                     </MudAutocomplete>
                     <MudAutocomplete Disabled="@(selectedGame == null)"
-                        T="Track" Label="Pick or search for Game" @bind-Value="selectedTrack"
-                        SearchFunc="@SeachTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+                        T="Track" Label="Pick or search for Track" @bind-Value="selectedTrack"
+                        SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
 
                     </MudAutocomplete>
+                    <MudAutocomplete Disabled="@(selectedGame == null)"
+                        T="Vehicle" Label="Pick or search for Vehicle" @bind-Value="selectedVehicle"
+                        SearchFunc="@SearchVehicle" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+
+                    </MudAutocomplete>
+                    <MudText class="pa-4 t" Typo="Typo.h4">Time</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="minutes" Label="Minutes" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="59" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="seconds" Label="Seconds" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="59" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="thousands" Label="Thousands" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="999" />
+                        </MudItem>
+                    </MudGrid>
             </MudForm>
         </MudCardContent>
+        <MudCardActions>
+            <MudButton Color="Color.Primary" @onclick="SubmitTime">Submit Time</MudButton>
+        </MudCardActions>
         
     </MudCard>
     
@@ -35,6 +55,11 @@
     private IEnumerable<Game> games;
     private Track selectedTrack;
     private Game selectedGame;
+    private Vehicle selectedVehicle;
+    private int minutes = 0;
+    private int seconds = 0;
+    private int thousands = 0;
+
 
     private bool isLoading = true;
 
@@ -45,7 +70,7 @@
     //    isLoading = false;
     //}
 
-    private async Task<IEnumerable<Game>> SeachGame(string searchString)
+    private async Task<IEnumerable<Game>> SearchGame(string searchString)
     {
         if(games is null)
             games = await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
@@ -64,7 +89,7 @@
 
         return matched; 
     }
-    private async Task<IEnumerable<Track>> SeachTrack(string searchString)
+    private async Task<IEnumerable<Track>> SearchTrack(string searchString)
     {
         if (selectedGame is null)
             return new List<Track>();
@@ -72,5 +97,19 @@
             return selectedGame.Tracks;
 
         return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower()));
+    }
+    private async Task<IEnumerable<Vehicle>> SearchVehicle(string searchString)
+    {
+        if (selectedGame is null)
+            return new List<Vehicle>();
+        if (string.IsNullOrWhiteSpace(searchString))
+            return selectedGame.Vehicles;
+
+        return selectedGame.Vehicles.Where(vehicle => vehicle.Name.ToLower().Contains(searchString.ToLower()));
+    }
+
+    private void SubmitTime()
+    {
+        
     }
 }

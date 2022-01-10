@@ -15,6 +15,7 @@ namespace leaderboard.Shared
         public string Id { get; set; }
         public string Name { get; set; }
         public List<Track> Tracks { get; set; }
+        public List<Vehicle> Vehicles { get; set; }
 
         public override string? ToString()
         {

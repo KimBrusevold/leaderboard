@@ -43,20 +43,21 @@ namespace leaderboard.Server.Controllers
         {
 
             var collection = Database.GetCollection<Game>(CollectionNames.GameCollection);
+            var game = collection.Find(FilterBuilder.Empty).ToList().FirstOrDefault();
 
             var trackCollection = Database.GetCollection<Track>(CollectionNames.TrackCollection);
+            var vehicleCollection = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+            var vehicles = vehicleCollection.Find(Builders<Vehicle>.Filter.Empty).ToList();
 
             var trackFilter = Builders<Track>.Filter.Where(t => t.Id == "61d49ceee516950adbc697c1");
 
             var tracks = await trackCollection.FindAsync<Track>(Builders<Track>.Filter.Empty);
             var track = await tracks.ToListAsync();
-            var game = new Game
-            {
-                Name = "iRacing",
-                Tracks = track
-            };
 
-            await collection.InsertOneAsync(game);
+            game.Tracks = track;
+            game.Vehicles = vehicles;
+
+            collection.ReplaceOne(FilterBuilder.Eq("Id", game.Id), game);
             return Ok();
         }
 
