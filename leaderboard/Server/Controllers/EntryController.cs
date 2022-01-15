@@ -1,4 +1,5 @@
 ﻿using leaderboard.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -12,6 +13,7 @@ namespace leaderboard.Server.Controllers
     {
         private readonly IMongoDatabase Database;
         IMongoCollection<Shared.RetrieveObjects.Entry> EntryCollection;
+        private static FilterDefinitionBuilder<Shared.RetrieveObjects.Entry> FilterBuilder = Builders<Shared.RetrieveObjects.Entry>.Filter;
 
 
         public EntryController(IMongoDatabase mongoDatabase)
@@ -22,21 +24,30 @@ namespace leaderboard.Server.Controllers
 
 
         // GET: api/<EntryController>
-        [HttpGet]
-        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get()
+        [HttpGet("{id}")]
+        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string id)
         {
-            var entries = await EntryCollection.Find(FilterDefinition<Shared.RetrieveObjects.Entry>.Empty)
+
+            var filter = FilterBuilder.Eq(x => x.Track.Id, id);
+            var entries = await EntryCollection.Find(filter)
                 .SortBy(e => e.Minutes).ThenBy(e => e.Seconds).ThenBy(e => e.Thousands)
                 .ToListAsync();
+            var userGroup = entries.GroupBy(ent => ent.User.Id);
+
+            var bestEntries = new List<Shared.RetrieveObjects.Entry>(userGroup.Count());
             
             var rank = 1;
-            foreach (var e in entries)
+            foreach (var ent in userGroup)
             {
-                e.Rank = rank;
+                var entry = ent.First();
+                entry.Rank = rank;
                 rank++;
+                bestEntries.Add(entry);
             }
 
-            return entries;
+        
+
+            return bestEntries;
         }
 
         // GET api/<EntryController>/5
@@ -47,6 +58,7 @@ namespace leaderboard.Server.Controllers
         }
 
         // POST api/<EntryController>
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Shared.Createobjects.Entry value)
         {

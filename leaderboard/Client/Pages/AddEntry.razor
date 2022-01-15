@@ -68,7 +68,13 @@
 
 
     protected override async Task OnInitializedAsync() 
-        => games = await Client.GetFromJsonAsync<IEnumerable<Game>>("api/game");
+    {
+        games = await Client.GetFromJsonAsync<IEnumerable<Game>>("api/game");
+            foreach (var item in games.First().Vehicles)
+            {
+                System.Console.WriteLine(item.Name);
+            }
+    }
 
 
     private async Task<IEnumerable<Game>> SearchGame(string searchString)
@@ -96,6 +102,7 @@
             return new List<Track>();
         if (string.IsNullOrWhiteSpace(searchString))
             return selectedGame.Tracks;
+
 
         return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower()));
     }

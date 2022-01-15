@@ -7,12 +7,24 @@
             Welcome!
 </h1>
 <AuthorizeView>
-        
         <MudButton Color="Color.Primary" Link="/addentry">Add an entry.</MudButton>
 </AuthorizeView>
 
+ <MudGrid>
+         <MudItem xs="12" sm="6" md="4">
+                <MudAutocomplete md =
+                        T="Track" Label="Pick or search for Game" @bind-Value="track"
+                        SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+                </MudAutocomplete>
 
-<MudTable Items="@entries" Hover="true" Loading="@loading" LoadingProgressColor="Color.Info">
+         </MudItem>
+ </MudGrid>
+
+
+@if(entries is not null)
+{
+
+@* <MudTable Items="@entries" Hover="true">
         <HeaderContent>
                 <MudTh>#</MudTh>
                 <MudTh>UserName</MudTh>
@@ -23,17 +35,36 @@
                 <MudTd DataLabel="UserName">@context.User.UserName</MudTd>
                 <MudTd DataLabel="Time">@(context.Minutes):@(context.Seconds).@(context.Thousands)</MudTd>
         </RowTemplate>
-</MudTable>
+</MudTable> *@
+}
 
 @code{
-        IEnumerable<Entry> entries = new List<Entry>(0);
+        IEnumerable<Entry> entries;
+        IEnumerable<Track> tracks;
+        Track track;
         bool loading = true;
-         protected override async Task OnInitializedAsync()
-         {
-                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>("api/entry");
-                loading = false;
-         }
 
+         async Task<IEnumerable<Track>> SearchTrack(string searchString)
+        {
+                if(tracks is null)
+                {
+                        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
+                        return tracks;
+                }
+
+                if(string.IsNullOrWhiteSpace(searchString))
+                        return tracks;
+                
+                return tracks.Where(track => track.Name.ToLower().Contains(searchString));
+        
+        }
+
+        @* private async Task GetEntries()
+        {
+                if(entries is not null)
+                        return;
+                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
+        } *@
          
 
 }

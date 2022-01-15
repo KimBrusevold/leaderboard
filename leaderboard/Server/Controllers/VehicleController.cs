@@ -1,4 +1,5 @@
-﻿using Ganss.XSS;
+﻿using System.Text.Json;
+using Ganss.XSS;
 using leaderboard.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -14,6 +15,7 @@ public class VehicleController : ControllerBase
     private static FilterDefinitionBuilder<Vehicle> FilterBuilder = Builders<Vehicle>.Filter;
     private readonly IMongoDatabase Database;
     private ILogger<VehicleController> Logger {get; set;}
+    private HtmlSanitizer Sanitizer = new HtmlSanitizer();
     public VehicleController(IMongoDatabase mongoDatabase, ILogger<VehicleController> logger)
     {
         Database = mongoDatabase;
@@ -44,22 +46,16 @@ public class VehicleController : ControllerBase
     }
 
     // POST api/<VehicleController>
-    [HttpPost]
-    public async Task Post()
-    {
-        string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kim\Documents\code\dotnet\leaderboard\leaderboard\Server\vehiclenames.txt");
-        var vehicles = new List<Vehicle>(lines.Length);
-        foreach (var line in lines)
-        {
-            var vehicle = new Vehicle
-            {
-                Name = line
-            };
-            vehicles.Add(vehicle);
-        }
-        var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-        await vehicleCol.InsertManyAsync(vehicles);
-    }
+    // [HttpPost]
+    // public async Task<IActionResult>Post([FromBody] Vehicle vehicle)
+    // {
+    //     vehicle.Id = null;
+    //     vehicle.Name = Sanitizer.Sanitize(vehicle.Name);
+    //     var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+    //     Logger.LogInformation(JsonSerializer.Serialize(vehicle));
+    //     await vehicleCol.InsertOneAsync(vehicle);
+    //     return Ok("Went ok");
+    // }
 
     // PUT api/<VehicleController>/5
     [HttpPut("{id}")]
@@ -68,11 +64,11 @@ public class VehicleController : ControllerBase
     }
 
     // DELETE api/<VehicleController>/5
-    [HttpDelete]
-    public void Delete()
-    {
-         var trackCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-            trackCol.DeleteMany(Builders<Vehicle>.Filter.Empty);
-    }
+    // [HttpDelete]
+    // public void Delete()
+    // {
+    //      var trackCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+    //         trackCol.DeleteMany(Builders<Vehicle>.Filter.Empty);
+    // }
 }
 

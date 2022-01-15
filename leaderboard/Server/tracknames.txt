@@ -11,7 +11,7 @@ Canadian Tire Motorsport Park
 Cedar Lake Speedway
 Centripetal Circuit
 Charlotte Motor Speedway
-Charlotte Motor Speedway &#8211; 2008
+Charlotte Motor Speedway - 2008
 Chicago Street Circuit
 Chicagoland Speedway
 Chili Bowl
@@ -26,7 +26,7 @@ Concord Speedway
 Crandon International Raceway
 Darlington Raceway
 Daytona International Speedway
-Daytona International Speedway &#8211; 2008
+Daytona International Speedway - 2008
 Detroit Grand Prix at Belle Isle
 Donington Park Racing Circuit
 Dover International Speedway
@@ -48,19 +48,19 @@ Knoxville Raceway
 Kokomo Speedway
 Langley Speedway
 Lanier National Speedway
-Lanier National Speedway &#8211; Dirt
+Lanier National Speedway - Dirt
 Las Vegas Motor Speedway
 Lernerville Speedway
 Limaland Motorsports Park
 Lime Rock Park
-Lime Rock Park &#8211; 2008
+Lime Rock Park - 2008
 Long Beach Street Circuit
 Lucas Oil Raceway
 Lånkebanen (HellRX)
 Martinsville Speedway
 Michelin Raceway Road Atlanta
 Michigan International Speedway
-Michigan International Speedway &#8211; 2009
+Michigan International Speedway - 2009
 Mid-Ohio Sports Car Course
 Mount Panorama  Circuit
 Mount Washington Auto Road
@@ -79,16 +79,16 @@ Oulton Park Circuit
 Oxford Plains Speedway
 Phillip Island Circuit
 Phoenix Raceway
-Phoenix Raceway &#8211; 2008
+Phoenix Raceway - 2008
 Pocono Raceway
-Pocono Raceway &#8211; 2009
-Red Bull Ring &#8211; Spielberg
+Pocono Raceway - 2009
+Red Bull Ring - Spielberg
 Richmond Raceway
 Road America
 Rockingham Speedway
 Sebring International Raceway
 Silverstone Circuit
-Silverstone Circuit &#8211; 2008
+Silverstone Circuit - 2008
 Snetterton Circuit
 Sonoma Raceway
 South Boston Speedway
@@ -98,7 +98,7 @@ Summit Point Motorsports Park
 Suzuka International Racing Course
 Talladega Superspeedway
 Texas Motor Speedway
-Texas Motor Speedway &#8211; 2009
+Texas Motor Speedway - 2009
 The Bullring at LVMS
 The Dirt Track at Charlotte
 The Milwaukee Mile
@@ -106,7 +106,7 @@ Thompson Speedway Motorsports Park
 Tsukuba Circuit
 Twin Ring Motegi
 USA International Speedway
-USA International Speedway &#8211; Dirt
+USA International Speedway - Dirt
 Virginia International Raceway
 Volusia Speedway Park
 Watkins Glen International

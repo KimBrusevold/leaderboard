@@ -2,18 +2,23 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System.Text;
-
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
+
 builder.Services.Configure<IConfiguration>(builder.Configuration);
 builder.Host.ConfigureLogging(logging =>
 {
     logging.ClearProviders();
     logging.AddConsole();
 });
+
+
 
 builder.Services.AddAuthentication(options =>
     {
@@ -36,10 +41,15 @@ builder.Services.AddAuthentication(options =>
     });
 
 var settings = MongoClientSettings.FromConnectionString(builder.Configuration["ConnectionStrings:mongoSandbox"]);
+
 var client = new MongoClient(settings);
 IMongoDatabase database = client.GetDatabase("leaderboard");
 
 builder.Services.AddSingleton<IMongoDatabase>(_ => database);
+
+
+
+
 
 var app = builder.Build();
 

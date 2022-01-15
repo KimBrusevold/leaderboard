@@ -1,4 +1,5 @@
-﻿using leaderboard.Shared;
+﻿using Ganss.XSS;
+using leaderboard.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -12,6 +13,7 @@ namespace leaderboard.Server.Controllers
     public class TrackController : ControllerBase
     {
         private readonly IMongoDatabase Database;
+        private HtmlSanitizer Sanitizer = new HtmlSanitizer();
 
         public TrackController(IMongoDatabase database)
         {
@@ -36,25 +38,16 @@ namespace leaderboard.Server.Controllers
         }
 
         // POST api/<ValuesController>
-        [HttpPost]
-        public async Task Post()
-        {
-            var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
+        // [HttpPost]
+        // public async Task Post([FromBody] Track track)
+        // {
+        //     var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
 
-            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kim\Documents\code\dotnet\leaderboard\leaderboard\Server\tracknames.txt");
-            var trackList = new List<Track>(lines.Length);
-            foreach (var line in lines)
-            {
-                var track = new Track
-                {
-                    Name = line
-                };
-                trackList.Add(track);
-            }
+        //     track.Id = null;
+        //     track.Name = Sanitizer.Sanitize(track.Name);
+        //     await trackCol.InsertOneAsync(track);
 
-            await trackCol.InsertManyAsync(trackList);
-
-        }
+        // }
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}")]
@@ -63,11 +56,11 @@ namespace leaderboard.Server.Controllers
         }
 
         // DELETE api/<ValuesController>/5
-        [HttpDelete]
-        public void Delete()
-        {
-            var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
-            trackCol.DeleteMany(Builders<Track>.Filter.Empty);
-        }
+        // [HttpDelete]
+        // public void Delete()
+        // {
+        //     var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
+        //     trackCol.DeleteMany(Builders<Track>.Filter.Empty);
+        // }
     }
 }
