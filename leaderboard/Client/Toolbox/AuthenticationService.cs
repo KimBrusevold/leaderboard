@@ -23,7 +23,6 @@ public class AuthenticationService : IAuthenticationService
         if (string.IsNullOrWhiteSpace(code))
             return null;
 
-        Console.WriteLine($"Code is {code}");
         var loginData = new LoginData(code);
 
         //var auth = await Http.GetFromJsonAsync<LoginResponse>("Login");

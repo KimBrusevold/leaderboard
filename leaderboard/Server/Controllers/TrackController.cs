@@ -37,8 +37,23 @@ namespace leaderboard.Server.Controllers
 
         // POST api/<ValuesController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task Post()
         {
+            var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
+
+            string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kim\Documents\code\dotnet\leaderboard\leaderboard\Server\tracknames.txt");
+            var trackList = new List<Track>(lines.Length);
+            foreach (var line in lines)
+            {
+                var track = new Track
+                {
+                    Name = line
+                };
+                trackList.Add(track);
+            }
+
+            await trackCol.InsertManyAsync(trackList);
+
         }
 
         // PUT api/<ValuesController>/5
@@ -48,9 +63,11 @@ namespace leaderboard.Server.Controllers
         }
 
         // DELETE api/<ValuesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete]
+        public void Delete()
         {
+            var trackCol = Database.GetCollection<Track>(CollectionNames.TrackCollection);
+            trackCol.DeleteMany(Builders<Track>.Filter.Empty);
         }
     }
 }

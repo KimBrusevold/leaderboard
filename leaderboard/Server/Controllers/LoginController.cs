@@ -1,5 +1,4 @@
-﻿using leaderboard.Server.Models;
-using leaderboard.Shared;
+﻿using leaderboard.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -74,7 +73,7 @@ namespace leaderboard.Server.Controllers
                 return new BadRequestObjectResult(new {Reponse = "Could not retrieve information from Discord, is user authenticated?"});
 
 
-            if (!await UserExists(userData.Value))
+            if (await UserExists(userData.Value) is false)
                 await CreateUser(userData.Value);
 
             var authClaims = new List<Claim>
@@ -105,9 +104,9 @@ namespace leaderboard.Server.Controllers
 
         private async Task CreateUser(DiscordMe userData)
         {
-            var userCol = Database.GetCollection<User>(CollectionNames.UserCollection);
+            var userCol = Database.GetCollection<Shared.RetrieveObjects.User>(CollectionNames.UserCollection);
 
-            var user = new User
+            var user = new Shared.RetrieveObjects.User
             {
                 DiscordId = userData.Id,
                 UserName = userData.Username,
@@ -119,9 +118,9 @@ namespace leaderboard.Server.Controllers
 
         private async Task<bool> UserExists(DiscordMe userData)
         {
-            var userCol = Database.GetCollection<User>(CollectionNames.UserCollection);
+            var userCol = Database.GetCollection<Shared.RetrieveObjects.User>(CollectionNames.UserCollection);
 
-            var filter = Builders<User>.Filter.Eq("DiscordId", userData.Id);
+            var filter = Builders<Shared.RetrieveObjects.User>.Filter.Eq("DiscordId", userData.Id);
 
             var res = await userCol.FindAsync(filter);
             return res.Any();

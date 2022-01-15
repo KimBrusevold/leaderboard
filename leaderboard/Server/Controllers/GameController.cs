@@ -47,15 +47,15 @@ namespace leaderboard.Server.Controllers
 
             var trackCollection = Database.GetCollection<Track>(CollectionNames.TrackCollection);
             var vehicleCollection = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-            var vehicles = vehicleCollection.Find(Builders<Vehicle>.Filter.Empty).ToList();
-
-            var trackFilter = Builders<Track>.Filter.Where(t => t.Id == "61d49ceee516950adbc697c1");
-
+            
+            
+            var vehicles = await vehicleCollection.FindAsync(Builders<Vehicle>.Filter.Empty);
             var tracks = await trackCollection.FindAsync<Track>(Builders<Track>.Filter.Empty);
-            var track = await tracks.ToListAsync();
 
-            game.Tracks = track;
-            game.Vehicles = vehicles;
+
+
+            game.Tracks = await tracks.ToListAsync();
+            game.Vehicles = await vehicles.ToListAsync();
 
             collection.ReplaceOne(FilterBuilder.Eq("Id", game.Id), game);
             return Ok();

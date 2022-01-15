@@ -11,20 +11,32 @@ namespace leaderboard.Server.Controllers
     public class EntryController : ControllerBase
     {
         private readonly IMongoDatabase Database;
+        IMongoCollection<Shared.RetrieveObjects.Entry> EntryCollection;
+
 
         public EntryController(IMongoDatabase mongoDatabase)
         {
             Database = mongoDatabase;
+            EntryCollection = Database.GetCollection<Shared.RetrieveObjects.Entry>(CollectionNames.EntryCollection);
         }
 
 
         // GET: api/<EntryController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get()
         {
-            //Database.GetCollection<>(CollectionNames.UserCollection);
+            var entries = await EntryCollection.Find(FilterDefinition<Shared.RetrieveObjects.Entry>.Empty)
+                .SortBy(e => e.Minutes).ThenBy(e => e.Seconds).ThenBy(e => e.Thousands)
+                .ToListAsync();
+            
+            var rank = 1;
+            foreach (var e in entries)
+            {
+                e.Rank = rank;
+                rank++;
+            }
 
-            return new string[] { "value1", "value2" };
+            return entries;
         }
 
         // GET api/<EntryController>/5
@@ -36,10 +48,46 @@ namespace leaderboard.Server.Controllers
 
         // POST api/<EntryController>
         [HttpPost]
-        public void Post([FromBody] Entry value)
+        public async Task<IActionResult> Post([FromBody] Shared.Createobjects.Entry value)
         {
-            var entryCollection = Database.GetCollection<Entry>(CollectionNames.EntryCollection);
+            var userCollection = Database.GetCollection<Shared.RetrieveObjects.User>(CollectionNames.UserCollection);
 
+            var userBuilder = Builders<Shared.RetrieveObjects.User>.Filter;
+
+            var filter = userBuilder.Eq("DiscordId", value.User.DiscrodId);
+            var user = await userCollection.Find(filter).FirstOrDefaultAsync();
+
+            if(user is null)
+                return BadRequest("Did not find a user");
+
+            try
+            {
+
+                var entry = new Shared.RetrieveObjects.Entry()
+                {
+                    Track = value.Track,
+                    Vehicle = value.Vehicle,
+                    User = new Shared.RetrieveObjects.User{
+                        Id = user.Id,
+                        UserName = user.UserName
+                    },
+                    Game = new Game {
+                        Id = value.Game.Id,
+                        Name = value.Game.Name
+                    },
+                    Minutes = value.Minutes,
+                    Seconds = value.Seconds,
+                    Thousands = value.Thousands
+                };
+
+
+                await EntryCollection.InsertOneAsync(entry);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong creating entry");
+            }
         }
 
         // PUT api/<EntryController>/5

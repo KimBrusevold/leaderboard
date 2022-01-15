@@ -1,4 +1,5 @@
-﻿using leaderboard.Shared;
+﻿using Ganss.XSS;
+using leaderboard.Shared;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
@@ -12,10 +13,11 @@ public class VehicleController : ControllerBase
 {
     private static FilterDefinitionBuilder<Vehicle> FilterBuilder = Builders<Vehicle>.Filter;
     private readonly IMongoDatabase Database;
-
-    public VehicleController(IMongoDatabase mongoDatabase)
+    private ILogger<VehicleController> Logger {get; set;}
+    public VehicleController(IMongoDatabase mongoDatabase, ILogger<VehicleController> logger)
     {
         Database = mongoDatabase;
+        Logger = logger;
     }
 
 
@@ -24,7 +26,14 @@ public class VehicleController : ControllerBase
     public async Task<IEnumerable<Vehicle>> Get()
     {
         var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-        return await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
+        var vehicles = await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
+        
+        foreach (var item in vehicles)
+        {
+            System.Console.WriteLine(item.Name);
+        }
+
+        return vehicles;
     }
 
     // GET api/<VehicleController>/5
@@ -38,13 +47,18 @@ public class VehicleController : ControllerBase
     [HttpPost]
     public async Task Post()
     {
-        var vehicle = new Vehicle
+        string[] lines = System.IO.File.ReadAllLines(@"C:\Users\Kim\Documents\code\dotnet\leaderboard\leaderboard\Server\vehiclenames.txt");
+        var vehicles = new List<Vehicle>(lines.Length);
+        foreach (var line in lines)
         {
-            Name = "Ferrari 488 GT3 Evo 2020"
-        };
-
+            var vehicle = new Vehicle
+            {
+                Name = line
+            };
+            vehicles.Add(vehicle);
+        }
         var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-        await vehicleCol.InsertOneAsync(vehicle);
+        await vehicleCol.InsertManyAsync(vehicles);
     }
 
     // PUT api/<VehicleController>/5
@@ -54,9 +68,11 @@ public class VehicleController : ControllerBase
     }
 
     // DELETE api/<VehicleController>/5
-    [HttpDelete("{id}")]
-    public void Delete(int id)
+    [HttpDelete]
+    public void Delete()
     {
+         var trackCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+            trackCol.DeleteMany(Builders<Vehicle>.Filter.Empty);
     }
 }
 
