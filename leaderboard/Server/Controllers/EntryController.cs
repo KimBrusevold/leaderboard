@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using leaderboard.Shared;
+using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -35,8 +36,10 @@ namespace leaderboard.Server.Controllers
 
         // POST api/<EntryController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public void Post([FromBody] Entry value)
         {
+            var entryCollection = Database.GetCollection<Entry>(CollectionNames.EntryCollection);
+
         }
 
         // PUT api/<EntryController>/5
