@@ -1,25 +1,27 @@
 ﻿@page "/login"
 @inject NavigationManager NavManager
-
+@inject HttpClient Client
 
 <PageTitle>Welcome! Log in to Leaderboard App</PageTitle>
-    
+
 <MudCard>
     <MudCardContent>
         <h2>Log In</h2>
     </MudCardContent>
     <MudCardActions>
-        <MudButton OnClick="DiscordRedirect" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Log In With Discord</MudButton>
+        <MudLink Class="ml-auto" Underline="Underline.Always" Href="@uri">Log In</MudLink>
+        @* <MudButton OnClick="DiscordRedirect" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Log In With Discord</MudButton> *@
     </MudCardActions>
 </MudCard>
 
 
 @code {
     private int currentCount = 0;
-   
+    private string uri = "";
 
-    private void DiscordRedirect()
-    {
-        NavManager.NavigateTo("https://discord.com/api/oauth2/authorize?client_id=923182861459288114&https://racingleaderboard.azurewebsites.net/loginaction&response_type=code&scope=identify%20email&prompt=none");
-    }
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            uri = $"https://discord.com/api/oauth2/authorize?client_id=923182861459288114&{Client.BaseAddress}loginaction&response_type=code&scope=identify%20email";
+        }
 }

@@ -16,10 +16,24 @@
                         T="Track" Label="Pick or search for Game" @bind-Value="track"
                         SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
                 </MudAutocomplete>
-
          </MudItem>
+         <MudButton xs="4" sm="2" md="2" OnClick="SetLeadeboard">Get Leaderboard</MudButton>
  </MudGrid>
 
+<MudTable Items="entries" Hover="true">
+        <HeaderContent>
+                <MudTh>Nr</MudTh>
+                <MudTh>Time</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Diff</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+                <MudTh>@context.Rank</MudTh>
+                <MudTh>@($"{context.Minutes}:{context.Seconds}:{context.Thousands}")</MudTh>
+                <MudTh>@context.User.UserName</MudTh>
+                <MudTh>@GetDiff(context)</MudTh>
+        </RowTemplate>
+</MudTable>
 
 @if(entries is not null)
 {
@@ -40,10 +54,22 @@
 
 @code{
         IEnumerable<Entry> entries;
+        TimeSpan fastest;
         IEnumerable<Track> tracks;
         Track track;
         bool loading = true;
 
+        private string GetDiff(Entry entry)
+        {
+                var time = new TimeSpan(0,0,entry.Minutes,entry.Seconds,entry.Thousands);
+
+                var diff = fastest - time;
+
+                if(diff.TotalSeconds == 0)
+                        return string.Empty;
+                
+                return $"{diff.TotalSeconds}";
+        }
          async Task<IEnumerable<Track>> SearchTrack(string searchString)
         {
                 if(tracks is null)
@@ -56,7 +82,16 @@
                         return tracks;
                 
                 return tracks.Where(track => track.Name.ToLower().Contains(searchString));
-        
+        }
+
+        private async Task SetLeadeboard()
+        {
+                if(track is null)
+                        return;
+                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
+                
+                
+                fastest = new TimeSpan(0, 0, entries.First().Minutes,entries.First().Seconds, entries.First().Thousands);        
         }
 
         @* private async Task GetEntries()

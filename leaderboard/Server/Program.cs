@@ -20,6 +20,7 @@ builder.Host.ConfigureLogging(logging =>
 
 
 
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

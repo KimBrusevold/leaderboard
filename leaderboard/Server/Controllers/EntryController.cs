@@ -50,13 +50,6 @@ namespace leaderboard.Server.Controllers
             return bestEntries;
         }
 
-        // GET api/<EntryController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
         // POST api/<EntryController>
         [Authorize]
         [HttpPost]
