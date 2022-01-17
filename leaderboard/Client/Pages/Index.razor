@@ -12,7 +12,7 @@
 
  <MudGrid>
          <MudItem xs="12" sm="6" md="4">
-                <MudAutocomplete md =
+                <MudAutocomplete
                         T="Track" Label="Pick or search for Game" @bind-Value="track"
                         SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
                 </MudAutocomplete>
@@ -23,15 +23,17 @@
 <MudTable Items="entries" Hover="true">
         <HeaderContent>
                 <MudTh>Nr</MudTh>
+                <MudTh>Car</MudTh>
                 <MudTh>Time</MudTh>
                 <MudTh>Name</MudTh>
                 <MudTh>Diff</MudTh>
         </HeaderContent>
         <RowTemplate>
                 <MudTh>@context.Rank</MudTh>
+                <MudTh>@context.Vehicle.Name</MudTh>
                 <MudTh>@($"{context.Minutes}:{context.Seconds}:{context.Thousands}")</MudTh>
                 <MudTh>@context.User.UserName</MudTh>
-                <MudTh>@GetDiff(context)</MudTh>
+                <MudTh HideSmall="true">@GetDiff(context)</MudTh>
         </RowTemplate>
 </MudTable>
 
@@ -72,7 +74,7 @@
         }
          async Task<IEnumerable<Track>> SearchTrack(string searchString)
         {
-                if(tracks is null)
+                if(tracks == null)
                 {
                         tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
                         return tracks;
