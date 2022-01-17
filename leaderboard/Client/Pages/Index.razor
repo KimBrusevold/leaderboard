@@ -19,7 +19,18 @@
          </MudItem>
          <MudButton xs="4" sm="2" md="2" OnClick="SetLeadeboard">Get Leaderboard</MudButton>
  </MudGrid>
-
+@if((entries == null || entries.Count() == 0) && track != null)
+{
+<h2>No entries found for given track. Be the first one to post!</h2>
+<AuthorizeView>
+        <Authorized>
+                <MudButton Color="Color.Primary" Link="/addentry">Add an entry.</MudButton>
+        </Authorized>
+        <NotAuthorized>
+                <MudButton Link="/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Log In</MudButton>
+        </NotAuthorized>
+</AuthorizeView>
+}else{
 <MudTable Items="entries" Hover="true">
         <HeaderContent>
                 <MudTh>Nr</MudTh>
@@ -37,21 +48,6 @@
         </RowTemplate>
 </MudTable>
 
-@if(entries is not null)
-{
-
-@* <MudTable Items="@entries" Hover="true">
-        <HeaderContent>
-                <MudTh>#</MudTh>
-                <MudTh>UserName</MudTh>
-                <MudTh>Time</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-                <MudTd DataLabel="#">@context.Rank</MudTd>
-                <MudTd DataLabel="UserName">@context.User.UserName</MudTd>
-                <MudTd DataLabel="Time">@(context.Minutes):@(context.Seconds).@(context.Thousands)</MudTd>
-        </RowTemplate>
-</MudTable> *@
 }
 
 @code{
@@ -59,7 +55,7 @@
         TimeSpan fastest;
         IEnumerable<Track> tracks;
         Track track;
-        bool loading = true;
+        bool searcherd = false;
 
         private string GetDiff(Entry entry)
         {
@@ -88,10 +84,28 @@
 
         private async Task SetLeadeboard()
         {
+                Console.WriteLine("Setting Leaderboard");
                 if(track is null)
                         return;
-                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
+                try
+                {
+                        Console.WriteLine("Fetching Leaderboard");
+
+                        entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
+                }
+                catch
+                {
+                        Console.WriteLine("Something went wrong fetching Leaderboard");
+
+                     entries = null;
+                     return;   
+                }
                 
+                if(entries == null || entries.Count() <= 0)
+                {
+                        Console.WriteLine("null entries. returning");
+                        return;
+                }
                 
                 fastest = new TimeSpan(0, 0, entries.First().Minutes,entries.First().Seconds, entries.First().Thousands);        
         }
