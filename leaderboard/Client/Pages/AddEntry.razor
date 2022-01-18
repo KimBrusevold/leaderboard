@@ -18,8 +18,9 @@
         <MudCardContent>
             <MudForm>
                     <MudAutocomplete 
-                        T="Game" Label="Pick or search for Game" @bind-Value="selectedGame"
-                        SearchFunc="@SearchGame" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+                        T="Game" Label="Pick or search for Game" 
+                        SearchFunc="@SearchGame" ResetValueOnEmptyText="true" CoerceText="true" 
+                        CoerceValue="false" ValueChanged="LoadTracks">
 
                     </MudAutocomplete>
                     <MudAutocomplete Disabled="@(selectedGame == null)"
@@ -55,7 +56,6 @@
 </div>
 
 @code {
-    private IEnumerable<Game> games;
     private Track selectedTrack;
     private Game selectedGame;
     private Vehicle selectedVehicle;
@@ -65,46 +65,40 @@
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
-
-
-    protected override async Task OnInitializedAsync() 
+    
+    async Task LoadTracks(Game arg)
     {
-        games = await Client.GetFromJsonAsync<IEnumerable<Game>>("api/game");
-            foreach (var item in games.First().Vehicles)
-            {
-                System.Console.WriteLine(item.Name);
-            }
+        if(arg is null)
+        {
+            selectedGame = null;
+            return;
+        }
+
+        var tracks =  await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={arg.Id}");
+        selectedGame.Tracks = tracks.ToList();
     }
-
-
+    
     private async Task<IEnumerable<Game>> SearchGame(string searchString)
     {
-        if(games is null)
-            games = await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
         if (string.IsNullOrWhiteSpace(searchString))
-            return games;
+            return await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
 
         searchString = searchString.ToLower();
 
-        Console.WriteLine("Got: " + games.Count());
-        if (games is null)
-            return new List<Game>();
-
-
-        var matched = games.Where(game => game.Name.ToLower().Contains(searchString));
-        Console.WriteLine("Matches: " + matched.Count());
-
-        return matched; 
+        return await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game?name={searchString}");
+        
     }
     private async Task<IEnumerable<Track>> SearchTrack(string searchString)
     {
         if (selectedGame is null)
             return new List<Track>();
         if (string.IsNullOrWhiteSpace(searchString))
-            return selectedGame.Tracks;
+            return await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track");
 
 
-        return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower()));
+
+        return await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={selectedGame.Id}&name={searchString}");
+        
     }
     private async Task<IEnumerable<Vehicle>> SearchVehicle(string searchString)
     {

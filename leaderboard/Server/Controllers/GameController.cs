@@ -22,18 +22,22 @@ namespace leaderboard.Server.Controllers
         }
         // GET: api/<GameController>
         [HttpGet]
-        public async Task<IEnumerable<Game>> Get()
+        public async Task<IEnumerable<Game>> Get(string? name)
         {
             var collection = Database.GetCollection<Game>(CollectionNames.GameCollection);
-
-
-
             var allFilter = FilterBuilder.Empty;
-            var allGames = await collection.FindAsync(allFilter);
-            var games = await allGames.ToListAsync();
-            return games;
+
+            var allGames = await collection.Find(allFilter).Project(g => new Game{Id = g.Id, Name = g.Name}).ToListAsync();
+            
+            if(string.IsNullOrWhiteSpace(name) is false)
+            {
+                return allGames.Where(g => g.Name.ToLower().Contains(name.ToLower())).Select(game => new Game(){Name = game.Name, Id = game.Id}).Take(10);
+            }
+
+            return allGames;
         }
 
+        
         // GET api/<GameController>/5
         [HttpGet("{id}")]
         public string Get(int id)

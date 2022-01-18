@@ -22,12 +22,26 @@ namespace leaderboard.Server.Controllers
 
         // GET: api/<ValuesController>
         [HttpGet]
-        public async Task<IEnumerable<Track>> Get()
+        public async Task<IEnumerable<Track>> Get(string? gameId, string? name)
         {
+            List<Track> trackList;
+            if(string.IsNullOrWhiteSpace(gameId) is false)
+            {
+                var gameCollection = Database.GetCollection<Game>(CollectionNames.GameCollection);
+                trackList = await gameCollection.Find(ga => ga.Id == gameId).Project(ga => ga.Tracks).FirstOrDefaultAsync();
+
+            }
+
             var collection = Database.GetCollection<Track>(CollectionNames.TrackCollection);
-            var tracks = await collection.FindAsync(new BsonDocument());
-            
-            return await tracks.ToListAsync();
+            trackList = await collection.Find(new BsonDocument()).ToListAsync();
+
+            if(string.IsNullOrWhiteSpace(name) is false)
+            {
+                return trackList.Where(g => g.Name.ToLower().Contains(name.ToLower())).Take(10);
+
+            }
+
+            return trackList;
         }
 
         // GET api/<ValuesController>/5
