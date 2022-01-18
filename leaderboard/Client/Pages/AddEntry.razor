@@ -75,6 +75,7 @@
         }
 
         var tracks =  await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={arg.Id}");
+        selectedGame = arg;
         selectedGame.Tracks = tracks.ToList();
     }
     
