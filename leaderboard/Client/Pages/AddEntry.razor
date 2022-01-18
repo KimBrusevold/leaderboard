@@ -94,11 +94,11 @@
         if (selectedGame is null)
             return new List<Track>();
         if (string.IsNullOrWhiteSpace(searchString))
-            return await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track");
+            return selectedGame.Tracks.Take(10);
 
 
 
-        return await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={selectedGame.Id}&name={searchString}");
+        return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower())).Take(10);
         
     }
     private async Task<IEnumerable<Vehicle>> SearchVehicle(string searchString)
