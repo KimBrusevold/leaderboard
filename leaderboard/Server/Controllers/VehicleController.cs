@@ -2,6 +2,7 @@
 using Ganss.XSS;
 using leaderboard.Shared;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -25,17 +26,23 @@ public class VehicleController : ControllerBase
 
     // GET: api/<VehicleController>
     [HttpGet]
-    public async Task<IEnumerable<Vehicle>> Get()
+    public async Task<IEnumerable<Vehicle>> Get(string? gameId)
     {
         var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
-        var vehicles = await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
+        // var vehicles = await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
         
-        foreach (var item in vehicles)
+        if(string.IsNullOrWhiteSpace(gameId) is false)
         {
-            System.Console.WriteLine(item.Name);
+            var gameCollection = Database.GetCollection<Game>(CollectionNames.GameCollection);
+            return await gameCollection.Find(ga => ga.Id == gameId).Project(ga => ga.Vehicles).FirstOrDefaultAsync();
+
+        }
+        else
+        {
+            var collection = Database.GetCollection<Vehicle>(CollectionNames.TrackCollection);
+            return await collection.Find(new BsonDocument()).ToListAsync();
         }
 
-        return vehicles;
     }
 
     // GET api/<VehicleController>/5

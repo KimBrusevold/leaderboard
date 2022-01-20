@@ -12,58 +12,55 @@
 
  <MudGrid>
          <MudItem xs="12" sm="6" md="4">
-                <MudAutocomplete md =
-                        T="Track" Label="Pick or search for Game" @bind-Value="track"
+                <MudAutocomplete
+                        T="Track" Label="Pick or search for Track" ValueChanged="GetEntries"
                         SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
                 </MudAutocomplete>
          </MudItem>
-         <MudButton xs="4" sm="2" md="2" OnClick="SetLeadeboard">Get Leaderboard</MudButton>
  </MudGrid>
-
+@if((entries == null || entries.Count() == 0) && track != null)
+{
+<h2>No entries found for given track. Be the first one to post!</h2>
+<AuthorizeView>
+        <Authorized>
+                <MudButton Color="Color.Primary" Link="/addentry">Add an entry.</MudButton>
+        </Authorized>
+        <NotAuthorized>
+                <MudButton Link="/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Log In</MudButton>
+        </NotAuthorized>
+</AuthorizeView>
+}else{
 <MudTable Items="entries" Hover="true">
         <HeaderContent>
                 <MudTh>Nr</MudTh>
+                <MudTh>Car</MudTh>
                 <MudTh>Time</MudTh>
                 <MudTh>Name</MudTh>
                 <MudTh>Diff</MudTh>
         </HeaderContent>
         <RowTemplate>
                 <MudTh>@context.Rank</MudTh>
-                <MudTh>@($"{context.Minutes}:{context.Seconds}:{context.Thousands}")</MudTh>
+                <MudTh>@context.Vehicle.Name</MudTh>
+                <MudTh>@($"{context.Time.Minutes}:{context.Time.Seconds}:{context.Time.Milliseconds}")</MudTh>
                 <MudTh>@context.User.UserName</MudTh>
-                <MudTh>@GetDiff(context)</MudTh>
+                <MudTh HideSmall="true">@GetDiff(context)</MudTh>
         </RowTemplate>
 </MudTable>
 
-@if(entries is not null)
-{
-
-@* <MudTable Items="@entries" Hover="true">
-        <HeaderContent>
-                <MudTh>#</MudTh>
-                <MudTh>UserName</MudTh>
-                <MudTh>Time</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-                <MudTd DataLabel="#">@context.Rank</MudTd>
-                <MudTd DataLabel="UserName">@context.User.UserName</MudTd>
-                <MudTd DataLabel="Time">@(context.Minutes):@(context.Seconds).@(context.Thousands)</MudTd>
-        </RowTemplate>
-</MudTable> *@
 }
 
 @code{
+        private const string gameId = "61e336818a3f02e94b0731c1";
         IEnumerable<Entry> entries;
         TimeSpan fastest;
         IEnumerable<Track> tracks;
         Track track;
-        bool loading = true;
+        bool searcherd = false;
 
         private string GetDiff(Entry entry)
         {
-                var time = new TimeSpan(0,0,entry.Minutes,entry.Seconds,entry.Thousands);
 
-                var diff = fastest - time;
+                var diff = fastest - entry.Time;
 
                 if(diff.TotalSeconds == 0)
                         return string.Empty;
@@ -72,10 +69,9 @@
         }
          async Task<IEnumerable<Track>> SearchTrack(string searchString)
         {
-                if(tracks is null)
+                if(tracks == null)
                 {
-                        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
-                        return tracks;
+                        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={gameId}");
                 }
 
                 if(string.IsNullOrWhiteSpace(searchString))
@@ -84,22 +80,21 @@
                 return tracks.Where(track => track.Name.ToLower().Contains(searchString));
         }
 
-        private async Task SetLeadeboard()
+        private async Task GetEntries(Track track)
         {
-                if(track is null)
+                var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={track.Id}");
+                
+                if(gottenEnt == null || gottenEnt.Count() == 0)
+                {
+                        entries = null;
+                        fastest = TimeSpan.MinValue;
                         return;
-                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
+                }
                 
-                
-                fastest = new TimeSpan(0, 0, entries.First().Minutes,entries.First().Seconds, entries.First().Thousands);        
-        }
+                fastest = gottenEnt.First().Time;        
+                entries = gottenEnt;
 
-        @* private async Task GetEntries()
-        {
-                if(entries is not null)
-                        return;
-                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
-        } *@
-         
+                Console.WriteLine("Entries: " + entries.Count());
+        }        
 
 }

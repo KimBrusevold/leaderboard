@@ -3,6 +3,7 @@
 @using System.Security.Claims
 @using leaderboard.Shared
 @using leaderboard.Shared.Createobjects
+@using System.Text.RegularExpressions
 
 @inject HttpClient Client
 @inject NavigationManager NavManager
@@ -16,38 +17,37 @@
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <MudForm>
-                    <MudAutocomplete 
-                        T="Game" Label="Pick or search for Game" @bind-Value="selectedGame"
-                        SearchFunc="@SearchGame" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
+            <MudForm @bind-IsValid="@success">
+                    <MudAutocomplete Required="true"
+                        T="Game" Label="Pick or search for Game" 
+                        SearchFunc="@SearchGame" ResetValueOnEmptyText="true" CoerceText="true" 
+                        CoerceValue="false" ValueChanged="LoadTracks">
 
                     </MudAutocomplete>
-                    <MudAutocomplete Disabled="@(selectedGame == null)"
-                        T="Track" Label="Pick or search for Track" @bind-Value="selectedTrack"
-                        SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" >
+                    <MudAutocomplete Required="true" Disabled="@(selectedGame == null)"
+                        T="Track" Label="Pick or search for Track"
+                        SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" ValueChanged="loadVehicles">
 
                     </MudAutocomplete>
-                    <MudAutocomplete Disabled="@(selectedGame == null)"
+                    <MudAutocomplete Required="true" Disabled="@(selectedGame == null)"
                         T="Vehicle" Label="Pick or search for Vehicle" @bind-Value="selectedVehicle"
                         SearchFunc="@SearchVehicle" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
 
                     </MudAutocomplete>
                     <MudText class="pa-4 t" Typo="Typo.h4">Time</MudText>
                     <MudGrid>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudNumericField @bind-Value="minutes" Label="Minutes" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="1000" />
+                        <MudItem xs="6" sm="4" md="2">
+                            <MudNumericField Required="true" @bind-Value="minutes" Label="Minutes" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="1000" />
                         </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudNumericField @bind-Value="seconds" Label="Seconds" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="59" />
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudNumericField @bind-Value="thousands" Label="Thousands" Variant="Variant.Outlined" HideSpinButtons="true" Min="0" Max="999" />
+                        <MudItem xs="6" sm="4" md="3">
+                            <MudTextField Required="true"
+                            Validation="@(new Func<string, string>(validateSecondsString))" @bind-Value="secondsString" Label="seconds.hundreds-thousands" Variant="Variant.Outlined" HelperText="eg: '59' for 59 seconds. '59.123' for 123 thousands, or '59.1' for 1 tenth" />
                         </MudItem>
                     </MudGrid>
             </MudForm>
         </MudCardContent>
         <MudCardActions>
-            <MudButton Color="Color.Primary" @onclick="SubmitTime">Submit Time</MudButton>
+           <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="SubmitTime">Submit Time</MudButton>
         </MudCardActions>
         
     </MudCard>
@@ -55,56 +55,58 @@
 </div>
 
 @code {
-    private IEnumerable<Game> games;
     private Track selectedTrack;
     private Game selectedGame;
     private Vehicle selectedVehicle;
     private int minutes = 0;
-    private int seconds = 0;
-    private int thousands = 0;
+    private string secondsString;
+    private bool success = false;
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-
-    protected override async Task OnInitializedAsync() 
+    async Task loadVehicles(Track arg)
     {
-        games = await Client.GetFromJsonAsync<IEnumerable<Game>>("api/game");
-            foreach (var item in games.First().Vehicles)
-            {
-                System.Console.WriteLine(item.Name);
-            }
+        if(arg == null)
+            return;
+        
+        var vehicles = await Client.GetFromJsonAsync<IEnumerable<Vehicle>>($"api/vehicle?gameId={selectedGame.Id}");
+        selectedGame.Vehicles = vehicles.ToList();
+        selectedTrack = arg;
     }
+    async Task LoadTracks(Game arg)
+    {
+        if(arg is null)
+        {
+            return;
+        }
 
-
+        var tracks =  await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={arg.Id}");
+        selectedGame = arg;
+        selectedGame.Tracks = tracks.ToList();
+    }
+    
     private async Task<IEnumerable<Game>> SearchGame(string searchString)
     {
-        if(games is null)
-            games = await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
         if (string.IsNullOrWhiteSpace(searchString))
-            return games;
+            return await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game");
 
         searchString = searchString.ToLower();
 
-        Console.WriteLine("Got: " + games.Count());
-        if (games is null)
-            return new List<Game>();
-
-
-        var matched = games.Where(game => game.Name.ToLower().Contains(searchString));
-        Console.WriteLine("Matches: " + matched.Count());
-
-        return matched; 
+        return await Client.GetFromJsonAsync<IEnumerable<Game>>($"api/game?name={searchString}");
+        
     }
     private async Task<IEnumerable<Track>> SearchTrack(string searchString)
     {
         if (selectedGame is null)
             return new List<Track>();
         if (string.IsNullOrWhiteSpace(searchString))
-            return selectedGame.Tracks;
+            return selectedGame.Tracks.Take(10);
 
 
-        return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower()));
+
+        return selectedGame.Tracks.Where(track => track.Name.ToLower().Contains(searchString.ToLower())).Take(10);
+        
     }
     private async Task<IEnumerable<Vehicle>> SearchVehicle(string searchString)
     {
@@ -121,7 +123,7 @@
         if (selectedGame is null
         || selectedTrack is null
         || selectedVehicle is null
-        || (minutes == 0 && seconds == 0 && thousands == 0))
+        || (minutes == 0 && string.IsNullOrWhiteSpace(secondsString)))
             return;
 
 
@@ -146,17 +148,19 @@
             Name = nameClaim.Value
         };
 
+        double seconds = double.Parse(secondsString);
+
+        seconds = seconds + minutes*60;
+        var time = TimeSpan.FromSeconds(seconds);
+        
         Entry entry = new()
             {
                 Game = selectedGame,
                 Track = selectedTrack,
                 Vehicle= selectedVehicle,
                 User = user,
-                Minutes = minutes,
-                Seconds = seconds,
-                Thousands = thousands
+                Time = time
             };
-        System.Console.WriteLine(user.DiscrodId + " " + user.Name);
         try
         {
             var r = await Client.PostAsJsonAsync("api/entry", entry);
@@ -174,5 +178,26 @@
             System.Console.WriteLine("Error when creating entry: \n " + e.Message);
 
         }
+    }
+
+    private string validateSecondsString(string args)
+    {
+        if(string.IsNullOrWhiteSpace(args) || args.Length > 6 || args.Length == 0)
+            return "Seconds must be on format 'ss' or 'ss.ths'";
+
+        var reg = new Regex("^([0-9]{1,2}){1}([.][0-9]{1,3})?$");
+        var match = reg.Match(args);
+
+        if(match.Success is false)
+            return "Seconds must be on format 'ss' or 'ss.ths'";
+
+        if(double.TryParse(args, out double res) is false)
+        {
+            return "is input format 'ss' or 'ss.ths'? max value for thousands is 999";
+        }
+        if(res > 59.999)
+            return "Seconds part cannot be greater than 59.999. Use minutes";
+            
+        return null;
     }
 }
