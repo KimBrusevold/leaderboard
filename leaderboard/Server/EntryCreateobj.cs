@@ -6,8 +6,8 @@ using leaderboard.Shared;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.IdGenerators;
 
-namespace leaderboard.Shared.RetrieveObjects;
-public class Entry
+namespace leaderboard.Server;
+public class EntryCreateobj
 {
     [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
     public string Id { get; set; }
@@ -16,5 +16,5 @@ public class Entry
     public Track Track { get; set; }
     public Shared.RetrieveObjects.User User {get; set;}
     public Game Game { get; set; }
-    public TimeSpan Time {get;set;}
+    public double Time {get;set;}
 }

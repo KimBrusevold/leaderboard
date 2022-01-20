@@ -12,25 +12,36 @@ namespace leaderboard.Server.Controllers
     public class EntryController : ControllerBase
     {
         private readonly IMongoDatabase Database;
-        IMongoCollection<Shared.RetrieveObjects.Entry> EntryCollection;
-        private static FilterDefinitionBuilder<Shared.RetrieveObjects.Entry> FilterBuilder = Builders<Shared.RetrieveObjects.Entry>.Filter;
+        IMongoCollection<EntryCreateobj> EntryCollection;
+        private static FilterDefinitionBuilder<EntryCreateobj> FilterBuilder = Builders<EntryCreateobj>.Filter;
 
 
         public EntryController(IMongoDatabase mongoDatabase)
         {
             Database = mongoDatabase;
-            EntryCollection = Database.GetCollection<Shared.RetrieveObjects.Entry>(CollectionNames.EntryCollection);
+            EntryCollection = Database.GetCollection<EntryCreateobj>(CollectionNames.EntryCollection);
         }
 
 
         // GET: api/<EntryController>
-        [HttpGet("{id}")]
-        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string id)
+        [HttpGet]
+        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId)
         {
+            // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
+            FilterDefinition<EntryCreateobj>[] filters = new FilterDefinition<EntryCreateobj>[2];
+            filters[0] = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
+            
+            
+            if(!string.IsNullOrWhiteSpace(trackId))
+            {
+                filters[1] = FilterBuilder.Eq(ent => ent.Track.Id, trackId);
+            }
+            var filter = FilterBuilder.And(
+                filters
+            );
 
-            var filter = FilterBuilder.Eq(x => x.Track.Id, id);
             var entries = await EntryCollection.Find(filter)
-                .SortBy(e => e.Minutes).ThenBy(e => e.Seconds).ThenBy(e => e.Thousands)
+                .SortBy(e => e.Time)
                 .ToListAsync();
             var userGroup = entries.GroupBy(ent => ent.User.Id);
 
@@ -42,7 +53,14 @@ namespace leaderboard.Server.Controllers
                 var entry = ent.First();
                 entry.Rank = rank;
                 rank++;
-                bestEntries.Add(entry);
+                bestEntries.Add(new Shared.RetrieveObjects.Entry(){
+                    Game = entry.Game,
+                    Rank = entry.Rank,
+                    Time = TimeSpan.FromSeconds(entry.Time),
+                    User = entry.User,
+                    Vehicle = entry.Vehicle,
+                    Track = entry.Track
+                });
             }
 
         
@@ -67,9 +85,7 @@ namespace leaderboard.Server.Controllers
 
             try
             {
-
-                var entry = new Shared.RetrieveObjects.Entry()
-                {
+                EntryCreateobj entry = new() {
                     Track = value.Track,
                     Vehicle = value.Vehicle,
                     User = new Shared.RetrieveObjects.User{
@@ -80,11 +96,8 @@ namespace leaderboard.Server.Controllers
                         Id = value.Game.Id,
                         Name = value.Game.Name
                     },
-                    Minutes = value.Minutes,
-                    Seconds = value.Seconds,
-                    Thousands = value.Thousands
+                    Time = value.Time.TotalSeconds
                 };
-
 
                 await EntryCollection.InsertOneAsync(entry);
                 return Ok();

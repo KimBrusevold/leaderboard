@@ -13,11 +13,10 @@
  <MudGrid>
          <MudItem xs="12" sm="6" md="4">
                 <MudAutocomplete
-                        T="Track" Label="Pick or search for Game" @bind-Value="track"
+                        T="Track" Label="Pick or search for Track" ValueChanged="GetEntries"
                         SearchFunc="@SearchTrack" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false">
                 </MudAutocomplete>
          </MudItem>
-         <MudButton xs="4" sm="2" md="2" OnClick="SetLeadeboard">Get Leaderboard</MudButton>
  </MudGrid>
 @if((entries == null || entries.Count() == 0) && track != null)
 {
@@ -42,7 +41,7 @@
         <RowTemplate>
                 <MudTh>@context.Rank</MudTh>
                 <MudTh>@context.Vehicle.Name</MudTh>
-                <MudTh>@($"{context.Minutes}:{context.Seconds}:{context.Thousands}")</MudTh>
+                <MudTh>@($"{context.Time.Minutes}:{context.Time.Seconds}:{context.Time.Milliseconds}")</MudTh>
                 <MudTh>@context.User.UserName</MudTh>
                 <MudTh HideSmall="true">@GetDiff(context)</MudTh>
         </RowTemplate>
@@ -51,6 +50,7 @@
 }
 
 @code{
+        private const string gameId = "61e336818a3f02e94b0731c1";
         IEnumerable<Entry> entries;
         TimeSpan fastest;
         IEnumerable<Track> tracks;
@@ -59,9 +59,8 @@
 
         private string GetDiff(Entry entry)
         {
-                var time = new TimeSpan(0,0,entry.Minutes,entry.Seconds,entry.Thousands);
 
-                var diff = fastest - time;
+                var diff = fastest - entry.Time;
 
                 if(diff.TotalSeconds == 0)
                         return string.Empty;
@@ -72,8 +71,7 @@
         {
                 if(tracks == null)
                 {
-                        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>("api/track");
-                        return tracks;
+                        tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={gameId}");
                 }
 
                 if(string.IsNullOrWhiteSpace(searchString))
@@ -82,40 +80,21 @@
                 return tracks.Where(track => track.Name.ToLower().Contains(searchString));
         }
 
-        private async Task SetLeadeboard()
+        private async Task GetEntries(Track track)
         {
-                Console.WriteLine("Setting Leaderboard");
-                if(track is null)
-                        return;
-                try
-                {
-                        Console.WriteLine("Fetching Leaderboard");
-
-                        entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
-                }
-                catch
-                {
-                        Console.WriteLine("Something went wrong fetching Leaderboard");
-
-                     entries = null;
-                     return;   
-                }
+                var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={track.Id}");
                 
-                if(entries == null || entries.Count() <= 0)
+                if(gottenEnt == null || gottenEnt.Count() == 0)
                 {
-                        Console.WriteLine("null entries. returning");
+                        entries = null;
+                        fastest = TimeSpan.MinValue;
                         return;
                 }
                 
-                fastest = new TimeSpan(0, 0, entries.First().Minutes,entries.First().Seconds, entries.First().Thousands);        
-        }
+                fastest = gottenEnt.First().Time;        
+                entries = gottenEnt;
 
-        @* private async Task GetEntries()
-        {
-                if(entries is not null)
-                        return;
-                entries = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry/{track.Id}");
-        } *@
-         
+                Console.WriteLine("Entries: " + entries.Count());
+        }        
 
 }
