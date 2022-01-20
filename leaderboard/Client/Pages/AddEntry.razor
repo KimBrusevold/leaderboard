@@ -188,9 +188,16 @@
         var reg = new Regex("^([0-9]{1,2}){1}([.][0-9]{1,3})?$");
         var match = reg.Match(args);
 
-        if(match.Success)
-            return null;
+        if(match.Success is false)
+            return "Seconds must be on format 'ss' or 'ss.ths'";
 
-        return "Seconds must be on format 'ss' or 'ss.ths'";
+        if(double.TryParse(args, out double res) is false)
+        {
+            return "is input format 'ss' or 'ss.ths'? max value for thousands is 999";
+        }
+        if(res > 59.999)
+            return "Seconds part cannot be greater than 59.999. Use minutes";
+            
+        return null;
     }
 }
