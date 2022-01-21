@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @inject NavigationManager NavManager
 @inject HttpClient Client
+@inject IConfiguration Configuration
 
 <PageTitle>Welcome! Log in to Leaderboard App</PageTitle>
 
@@ -22,6 +23,6 @@
         protected override void OnInitialized()
         {
             base.OnInitialized();
-            uri = $"https://discord.com/api/oauth2/authorize?client_id=923182861459288114&{Client.BaseAddress}loginaction&response_type=code&scope=identify%20email";
+            uri = $"https://discord.com/api/oauth2/authorize?client_id={Configuration["clientId"]}&{Client.BaseAddress}loginaction&response_type=code&scope=identify%20email";
         }
 }
