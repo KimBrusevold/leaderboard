@@ -17,7 +17,7 @@
             ],
             "group": "build",
             "presentation": {
-                "reveal": "silent"
+                "reveal": "always"
             },
             "problemMatcher": "$msCompile"
         },
@@ -35,7 +35,7 @@
             ],
             "group": "build",
             "presentation": {
-                "reveal": "silent"
+                "reveal": "always"
             },
             "problemMatcher": "$msCompile"
         },
