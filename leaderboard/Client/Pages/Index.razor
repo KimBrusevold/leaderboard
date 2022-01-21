@@ -15,20 +15,7 @@
 		</MudAutocomplete>
 	</MudItem>
 </MudGrid>
-@if ((entries == null || entries.Count() == 0) && track != null)
-{
-	<h2>No entries found for given track. Be the first one to post!</h2>
-	<AuthorizeView>
-		<Authorized>
-			<MudButton Color="Color.Primary" Link="/addentry">Add an entry.</MudButton>
-		</Authorized>
-		<NotAuthorized>
-			<MudButton Link="/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Log In</MudButton>
-		</NotAuthorized>
-	</AuthorizeView>
-}
-else
-{
+
 	<MudTable Items="entries" Hover="true">
 	<HeaderContent>
 		<MudTh>Nr</MudTh>
@@ -46,7 +33,6 @@ else
 	</RowTemplate>
 </MudTable>
 
-}
 
 @code {
 	private const string gameId = "61e336818a3f02e94b0731c1";
@@ -76,7 +62,7 @@ else
 		if (string.IsNullOrWhiteSpace(searchString))
 			return tracks;
 
-		return tracks.Where(track => track.Name.ToLower().Contains(searchString));
+		return tracks.Where(track => track.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase));
 	}
 
 	private async Task GetEntries(Track? track)
@@ -100,7 +86,6 @@ else
 		fastest = gottenEnt.First().Time;
 		entries = gottenEnt;
 
-		Console.WriteLine("Entries: " + entries.Count());
 	}
 
 }
