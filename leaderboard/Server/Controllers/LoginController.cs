@@ -93,7 +93,7 @@ namespace leaderboard.Server.Controllers
             var token = new JwtSecurityToken(
                 issuer: Configuration["JWT:iss"],
                 audience: Configuration["JWT:aud"],
-                expires: DateTime.Now.AddHours(3),
+                expires: DateTime.Now.AddMonths(6),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
