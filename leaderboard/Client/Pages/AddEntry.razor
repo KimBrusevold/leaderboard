@@ -45,11 +45,14 @@
                         </MudItem>
                     </MudGrid>
             </MudForm>
+            @if(string.IsNullOrWhiteSpace(error) is false)
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="my-2">@error</MudAlert>
+            }
         </MudCardContent>
         <MudCardActions>
            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="SubmitTime">Submit Time</MudButton>
         </MudCardActions>
-        
     </MudCard>
     
 </div>
@@ -61,6 +64,7 @@
     private int minutes = 0;
     private string secondsString;
     private bool success = false;
+    private string error = "";
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
@@ -163,20 +167,27 @@
             };
         try
         {
-            var r = await Client.PostAsJsonAsync("api/entry", entry);
-            
+            var r = await Client.PostAsJsonAsync("api/entry", entry);            
             if(r.IsSuccessStatusCode is false)
             {
+                if(r.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    error = "Something went wrong. Try to log out and in again";
+                    return;
+                }
+
                 var message = await  r.Content.ReadAsStringAsync();
                 throw new Exception(message);
+
             }
+            error = "";
 
             NavManager.NavigateTo("/");
         }
         catch (System.Exception e)
         {
+            error = "Something went wrong trying to create entry. Try again later.";
             System.Console.WriteLine("Error when creating entry: \n " + e.Message);
-
         }
     }
 
