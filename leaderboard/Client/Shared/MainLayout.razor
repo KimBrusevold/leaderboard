@@ -16,7 +16,7 @@
             <Authorized>
                 <div>
                     <MudAvatar Style="height:50px; width:50px; cursor:pointer"  Size="Size.Large" @onclick="@(e => isOpen = !isOpen)" Image="@($"https://cdn.discordapp.com/avatars/{AuthService.GetUserDiscordIdClaim(context)}/{AuthService.GetAvatarIdClaim(context)}.png")" />
-                    <MudPopover AnchorOrigin="Origin.BottomLeft" Origin Open="@isOpen" Fixed="true">
+                    <MudPopover AnchorOrigin="Origin.BottomLeft" Open="@isOpen" Fixed="true">
                         <MudNavMenu>
                             <MudNavLink Href="/logout">Log out</MudNavLink>
                         </MudNavMenu>
