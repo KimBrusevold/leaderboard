@@ -45,27 +45,36 @@ namespace leaderboard.Server.Controllers
                 .ToListAsync();
             var userGroup = entries.GroupBy(ent => ent.User.Id);
 
+
             var bestEntries = new List<Shared.RetrieveObjects.Entry>(userGroup.Count());
             
-            var rank = 1;
             foreach (var ent in userGroup)
             {
-                var entry = ent.First();
-                entry.Rank = rank;
-                rank++;
-                bestEntries.Add(new Shared.RetrieveObjects.Entry(){
-                    Game = entry.Game,
-                    Rank = entry.Rank,
-                    Time = TimeSpan.FromSeconds(entry.Time),
-                    User = entry.User,
-                    Vehicle = entry.Vehicle,
-                    Track = entry.Track
-                });
+                var usersBestEntries = new List<EntryCreateobj>();
+                
+                var bestPerVehicle = ent.GroupBy(gr => gr.Vehicle.Id);
+                foreach (var vehicleGroup in bestPerVehicle)
+                {
+                    var entry = vehicleGroup.First();
+
+                    bestEntries.Add(new Shared.RetrieveObjects.Entry(){
+                        Game = entry.Game,
+                        Rank = entry.Rank,
+                        Time = TimeSpan.FromSeconds(entry.Time),
+                        User = entry.User,
+                        Vehicle = entry.Vehicle,
+                        Track = entry.Track
+                    });
+                }               
+                
             }
-
-        
-
-            return bestEntries;
+            var timeSorted = bestEntries.OrderBy(x => x.Time);
+            for(int i = 0; i < timeSorted.Count(); i++)
+            {
+                timeSorted.ElementAt(i).Rank = i +1;
+            }
+             
+            return timeSorted;
         }
 
         // POST api/<EntryController>
