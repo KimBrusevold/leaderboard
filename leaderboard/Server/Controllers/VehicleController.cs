@@ -28,7 +28,6 @@ public class VehicleController : ControllerBase
     [HttpGet]
     public async Task<IEnumerable<Vehicle>> Get(string? gameId)
     {
-        var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
         // var vehicles = await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
         
         if(string.IsNullOrWhiteSpace(gameId) is false)
@@ -39,8 +38,9 @@ public class VehicleController : ControllerBase
         }
         else
         {
-            var collection = Database.GetCollection<Vehicle>(CollectionNames.TrackCollection);
-            return await collection.Find(new BsonDocument()).ToListAsync();
+            var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+
+            return await vehicleCol.Find(new BsonDocument()).ToListAsync();
         }
 
     }
