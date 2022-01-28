@@ -1,0 +1,43 @@
+﻿@page "/edit/VehicleEditor"
+@using leaderboard.Shared
+@inject HttpClient httpClient
+
+<MudTable Items="@vehicles" Hover="true" Bordered="false" Striped="true" Filter="new Func<Vehicle,bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Periodic Elements</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Name</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nr">@context.Id</MudTd>
+        <MudTd DataLabel="Sign">@context.Name</MudTd>
+    </RowTemplate>
+
+</MudTable>
+
+
+@code {
+    string searchString1 = "";
+    List<Vehicle> vehicles = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vehicles = await httpClient.GetFromJsonAsync<List<Vehicle>>("api/vehicle");
+    }
+
+    private bool FilterFunc1(Vehicle element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Vehicle element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        return element.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+}
+    

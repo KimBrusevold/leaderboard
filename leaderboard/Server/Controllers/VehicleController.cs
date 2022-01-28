@@ -28,7 +28,6 @@ public class VehicleController : ControllerBase
     [HttpGet]
     public async Task<IEnumerable<Vehicle>> Get(string? gameId)
     {
-        var vehicleCol = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
         // var vehicles = await (await vehicleCol.FindAsync(FilterBuilder.Empty)).ToListAsync();
         
         if(string.IsNullOrWhiteSpace(gameId) is false)
