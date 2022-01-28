@@ -14,15 +14,16 @@
         <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <div>
-                    <MudAvatar Style="height:50px; width:50px; cursor:pointer"  Size="Size.Large" @onclick="@(e => isOpen = !isOpen)" Image="@($"https://cdn.discordapp.com/avatars/{AuthService.GetUserDiscordIdClaim(context)}/{AuthService.GetAvatarIdClaim(context)}.png")" />
-                    <MudPopover AnchorOrigin="Origin.BottomLeft" Open="@isOpen" Fixed="true">
-                        <MudNavMenu>
-                            <MudNavLink Href="/logout">Log out</MudNavLink>
-                        </MudNavMenu>
-                    </MudPopover>
-                </div>
+
                 
+                <MudMenu Label="Open Menu">
+                    <ActivatorContent>
+                        <MudAvatar Size="Size.Large" Image="@($"https://cdn.discordapp.com/avatars/{AuthService.GetUserDiscordIdClaim(context)}/{AuthService.GetAvatarIdClaim(context)}.png")" />
+                    </ActivatorContent>
+                    <ChildContent>                            
+                        <MudMenuItem><MudLink Href="/logout" Underline="Underline.Always">Log out</MudLink></MudMenuItem>
+                    </ChildContent>
+                </MudMenu>                
             </Authorized>
             <NotAuthorized>
                 <MudButton Link="/login" StartIcon="@Icons.Material.Filled.Login" Color="Color.Inherit">Log In</MudButton>

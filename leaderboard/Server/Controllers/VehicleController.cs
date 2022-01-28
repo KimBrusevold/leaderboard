@@ -39,7 +39,7 @@ public class VehicleController : ControllerBase
         }
         else
         {
-            var collection = Database.GetCollection<Vehicle>(CollectionNames.TrackCollection);
+            var collection = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
             return await collection.Find(new BsonDocument()).ToListAsync();
         }
 
@@ -66,8 +66,32 @@ public class VehicleController : ControllerBase
 
     // PUT api/<VehicleController>/5
     [HttpPut("{id}")]
-    public void Put(int id, [FromBody] string value)
+    public async Task<IActionResult> Put(string id)
     {
+        var collection = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+
+        var allVehicles = await collection.Find(FilterBuilder.Empty).ToListAsync();
+
+        var gt3Vehicles = allVehicles.Where(ve => ve.Name.Contains("GT3"));
+        System.Console.WriteLine("Count: " + gt3Vehicles.Count());
+
+        var catCol = Database.GetCollection<Category>(CollectionNames.CategoryCollection);
+        var category = await catCol.Find(Builders<Category>.Filter.Empty).FirstOrDefaultAsync();
+        
+        if(category is null)
+            return BadRequest("No category Found");
+
+        var updateBuilder = Builders<Vehicle>.Update.Set(ve => ve.Category, category);
+
+        foreach (var item in gt3Vehicles)
+        {
+            System.Console.WriteLine(item.Name);
+            item.Category = category;
+            await collection.UpdateOneAsync(FilterBuilder.Eq(ve => ve.Id, item.Id), updateBuilder);
+        }
+
+        return Ok();
+
     }
 
     // DELETE api/<VehicleController>/5
