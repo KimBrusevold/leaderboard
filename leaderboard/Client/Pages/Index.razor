@@ -129,7 +129,7 @@
 
 		if (gottenEnt == null || gottenEnt.Count() == 0)
 		{
-			entries = null;
+			entries = new List<Entry>();
 			fastest = TimeSpan.MinValue;
 			return;
 		}
