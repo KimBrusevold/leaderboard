@@ -20,26 +20,29 @@
 		</MudAutocomplete>
 	</MudItem>
 	<MudItem xs="12" sm="6" md="4">
-		@if(track is not null){
-		<MudSelect T="string" Label="Categories" AnchorOrigin="Origin.BottomCenter">
-			@foreach (var category in categories)
+		<MudSelect ValueChanged="FilterByCategory" T="string" Label="Categories" AnchorOrigin="Origin.BottomCenter">
+			<MudSelectItem T="string" Value="@ALL_CATEGORIES">All Time Best</MudSelectItem>
+
+			@foreach (var cat in categories)
 			{
-				<MudSelectItem Value="@category.Name" />
-			}
+				@if(cat is not null){
+					<MudSelectItem Value="@cat.Id">@cat.Name</MudSelectItem>
+				}
+			}			
 		</MudSelect>
-		}
 	</MudItem>
 </MudGrid>
 }else{
 	<MudProgressCircular Color="Color.Info" Indeterminate="true" />
 }
+
+
+
 <MudTable Items="entries" Hover="true">
 	<HeaderContent>
 		<MudTh>Nr</MudTh>
 		<MudTh>
-			<div>
 				Car
-			</div>
 		</MudTh>
 		<MudTh>Time</MudTh>
 		<MudTh>Name</MudTh>
@@ -66,19 +69,19 @@
 
 @code {
 	private const string gameId = "61e336818a3f02e94b0731c1";
-	IEnumerable<Entry> entries;
+	const string ALL_CATEGORIES = "All";
+	IEnumerable<Entry> entries = new List<Entry>();
 	TimeSpan fastest;
 	IEnumerable<Track> tracks;
-	Track track;
-	IEnumerable<Category> categories;
+	Track selectedTrack;
+	IEnumerable<Category> categories = new List<Category>();
+	string selectedCategoryId = null;
 	bool searcherd = false;
 
 	protected override async Task OnInitializedAsync()
     {
 		tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={gameId}");
 		categories = await Client.GetFromJsonAsync<IEnumerable<Category>>($"api/category");
-
-		Console.WriteLine("Number of categories: " + categories.Count());
     }
 	private string GetDiff(Entry entry)
 	{
@@ -112,13 +115,16 @@
 
 	private async Task GetEntries(Track? track)
 	{
+		if(string.IsNullOrWhiteSpace(selectedCategoryId) is false)
+			System.Console.WriteLine("Selected Category with id: " + selectedCategoryId);
+
 		if (track == null)
 		{
-			entries = null;
+			entries = new List<Entry>();
 			fastest = TimeSpan.MinValue;
 			return;
 		}
-
+		selectedTrack = track;
 		var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={track.Id}");
 
 		if (gottenEnt == null || gottenEnt.Count() == 0)
@@ -129,8 +135,28 @@
 		}
 
 		fastest = gottenEnt.First().Time;
-		entries = gottenEnt;
+		entries = gottenEnt;		
+	}
+	async Task FilterByCategory(string selectedCategoryId)
+	{
+		if(string.IsNullOrWhiteSpace(selectedCategoryId) || selectedTrack is null)
+			return;
+		
+		if(selectedCategoryId == ALL_CATEGORIES)
+		{
+			await GetEntries(selectedTrack);
+			return;
+		}
+		var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={selectedTrack.Id}&categoryId={selectedCategoryId}");
+		if (gottenEnt == null || gottenEnt.Count() == 0)
+		{
+			entries = null;
+			fastest = TimeSpan.MinValue;
+			return;
+		}
 
+		fastest = gottenEnt.First().Time;
+		entries = gottenEnt;
 	}
 
 }

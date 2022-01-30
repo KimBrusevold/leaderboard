@@ -25,7 +25,7 @@ namespace leaderboard.Server.Controllers
 
         // GET: api/<EntryController>
         [HttpGet]
-        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId)
+        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId, string? categoryId)
         {
             // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
             FilterDefinition<EntryCreateobj>[] filters = new FilterDefinition<EntryCreateobj>[2];
@@ -53,9 +53,28 @@ namespace leaderboard.Server.Controllers
                 var usersBestEntries = new List<EntryCreateobj>();
                 
                 var bestPerVehicle = ent.GroupBy(gr => gr.Vehicle.Id);
+
+
                 foreach (var vehicleGroup in bestPerVehicle)
                 {
                     var entry = vehicleGroup.First();
+                    if(string.IsNullOrWhiteSpace(categoryId) is false)
+                    {
+                        System.Console.WriteLine("CategoryId to search for is " + categoryId);
+                        if(entry.Vehicle.Category?.Id == categoryId)
+                        {
+                            bestEntries.Add(new Shared.RetrieveObjects.Entry(){
+                                                    Game = entry.Game,
+                                                    Rank = entry.Rank,
+                                                    Time = TimeSpan.FromSeconds(entry.Time),
+                                                    User = entry.User,
+                                                    Vehicle = entry.Vehicle,
+                                                    Track = entry.Track
+                                                });
+                        }
+
+                        continue;
+                    }
 
                     bestEntries.Add(new Shared.RetrieveObjects.Entry(){
                         Game = entry.Game,
@@ -118,9 +137,25 @@ namespace leaderboard.Server.Controllers
         }
 
         // PUT api/<EntryController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task Put()
         {
+            var entryCollection = Database.GetCollection<EntryCreateobj>(CollectionNames.EntryCollection);
+            var allEntries = await entryCollection.Find(FilterBuilder.Empty).ToListAsync();
+
+            var vehicleCollectino = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+            
+            foreach (var item in allEntries)
+            {
+                var vehicle = await  vehicleCollectino.Find(Builders<Vehicle>.Filter.Eq(ve => ve.Id, item.Vehicle.Id)).FirstOrDefaultAsync();
+
+                if(vehicle is null)
+                    continue;
+
+                var update = Builders<EntryCreateobj>.Update.Set(entry => entry.Vehicle, vehicle);
+
+                await entryCollection.UpdateOneAsync(FilterBuilder.Eq(entry=> entry.Id, item.Id), update);
+            }
         }
 
         // DELETE api/<EntryController>/5
