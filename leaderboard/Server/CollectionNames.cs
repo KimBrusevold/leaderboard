@@ -7,5 +7,6 @@
         public const string GameCollection = "games";
         public const string VehicleCollection = "vehicles";
         public const string EntryCollection = "entries";
+        public const string CategoryCollection = "categories";
     }
 }

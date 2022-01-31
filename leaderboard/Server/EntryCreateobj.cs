@@ -7,10 +7,8 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace leaderboard.Server;
-public class EntryCreateobj
+public class EntryCreateobj : baseDBObject
 {
-    [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
-    public string Id { get; set; }
     public int? Rank {get; set;}
     public Vehicle Vehicle { get; set; }
     public Track Track { get; set; }

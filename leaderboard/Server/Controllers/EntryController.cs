@@ -25,49 +25,40 @@ namespace leaderboard.Server.Controllers
 
         // GET: api/<EntryController>
         [HttpGet]
-        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId)
+        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId, string? categoryId)
         {
             // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
-            FilterDefinition<EntryCreateobj>[] filters = new FilterDefinition<EntryCreateobj>[2];
-            filters[0] = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
+            var gameIdFilter = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
             
-            
-            if(!string.IsNullOrWhiteSpace(trackId))
-            {
-                filters[1] = FilterBuilder.Eq(ent => ent.Track.Id, trackId);
-            }
-            var filter = FilterBuilder.And(
-                filters
-            );
+            FilterDefinition<EntryCreateobj> filter;
 
+            if(string.IsNullOrWhiteSpace(trackId) is false)
+            {
+                filter = FilterBuilder.And(
+                    new FilterDefinition<EntryCreateobj>[2]{
+                        gameIdFilter,
+                        FilterBuilder.Eq(ent => ent.Track.Id, trackId)
+                    }
+                );
+            }
+            else
+            {
+                filter = gameIdFilter;
+            }
+            
             var entries = await EntryCollection.Find(filter)
                 .SortBy(e => e.Time)
                 .ToListAsync();
             var userGroup = entries.GroupBy(ent => ent.User.Id);
 
+            var bestEntries = BestEntryByTime(userGroup);
 
-            var bestEntries = new List<Shared.RetrieveObjects.Entry>(userGroup.Count());
-            
-            foreach (var ent in userGroup)
+            if(string.IsNullOrWhiteSpace(categoryId) is false)
             {
-                var usersBestEntries = new List<EntryCreateobj>();
-                
-                var bestPerVehicle = ent.GroupBy(gr => gr.Vehicle.Id);
-                foreach (var vehicleGroup in bestPerVehicle)
-                {
-                    var entry = vehicleGroup.First();
-
-                    bestEntries.Add(new Shared.RetrieveObjects.Entry(){
-                        Game = entry.Game,
-                        Rank = entry.Rank,
-                        Time = TimeSpan.FromSeconds(entry.Time),
-                        User = entry.User,
-                        Vehicle = entry.Vehicle,
-                        Track = entry.Track
-                    });
-                }               
-                
+                FilterByVehicleCategory(ref bestEntries, categoryId);
             }
+
+
             var timeSorted = bestEntries.OrderBy(x => x.Time);
             for(int i = 0; i < timeSorted.Count(); i++)
             {
@@ -76,6 +67,8 @@ namespace leaderboard.Server.Controllers
              
             return timeSorted;
         }
+
+        
 
         // POST api/<EntryController>
         [Authorize]
@@ -105,7 +98,8 @@ namespace leaderboard.Server.Controllers
                         Id = value.Game.Id,
                         Name = value.Game.Name
                     },
-                    Time = value.Time.TotalSeconds
+                    Time = value.Time.TotalSeconds,
+                    Created = DateTime.UtcNow
                 };
 
                 await EntryCollection.InsertOneAsync(entry);
@@ -118,15 +112,65 @@ namespace leaderboard.Server.Controllers
         }
 
         // PUT api/<EntryController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task Put()
         {
+            var entryCollection = Database.GetCollection<EntryCreateobj>(CollectionNames.EntryCollection);
+            var allEntries = await entryCollection.Find(FilterBuilder.Empty).ToListAsync();
+
+            var vehicleCollectino = Database.GetCollection<Vehicle>(CollectionNames.VehicleCollection);
+            
+            foreach (var item in allEntries)
+            {
+                var vehicle = await  vehicleCollectino.Find(Builders<Vehicle>.Filter.Eq(ve => ve.Id, item.Vehicle.Id)).FirstOrDefaultAsync();
+
+                if(vehicle is null)
+                    continue;
+
+                var update = Builders<EntryCreateobj>.Update.Set(entry => entry.Vehicle, vehicle);
+
+                await entryCollection.UpdateOneAsync(FilterBuilder.Eq(entry=> entry.Id, item.Id), update);
+            }
         }
 
         // DELETE api/<EntryController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+
+        private void FilterByVehicleCategory(ref IEnumerable<Shared.RetrieveObjects.Entry> bestEntries, string categoryId)
+        {
+            bestEntries = bestEntries.Where(entry => entry.Vehicle.Category?.Id == categoryId);            
+        }
+
+        private IEnumerable<Shared.RetrieveObjects.Entry> BestEntryByTime(IEnumerable<IGrouping<string, EntryCreateobj>> userGroup)
+        {
+            List<Shared.RetrieveObjects.Entry> bestEntries = new();
+
+            foreach (var ent in userGroup)
+            {
+                var usersBestEntries = new List<EntryCreateobj>();
+                
+                var bestPerVehicle = ent.GroupBy(gr => gr.Vehicle.Id);
+
+                foreach (var vehicleGroup in bestPerVehicle)
+                {
+                    var entry = vehicleGroup.First();
+
+                    bestEntries.Add(new Shared.RetrieveObjects.Entry(){
+                        Game = entry.Game,
+                        Rank = entry.Rank,
+                        Time = TimeSpan.FromSeconds(entry.Time),
+                        User = entry.User,
+                        Vehicle = entry.Vehicle,
+                        Track = entry.Track
+                    });
+                }               
+                
+            }
+             
+            return bestEntries;
         }
     }
 }
