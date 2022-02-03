@@ -5,6 +5,9 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using leaderboard.DataProvider;
+using leaderboard.DataProvider.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -48,6 +51,8 @@ IMongoDatabase database = client.GetDatabase("leaderboard");
 
 builder.Services.AddSingleton<IMongoDatabase>(_ => database);
 
+var dataProvider = new LeaderboardProvider(builder.Configuration["ConnectionStrings:mongoSandbox"]);
+builder.Services.AddSingleton<ILeaderboardDataProvider>(_ => dataProvider);
 
 
 

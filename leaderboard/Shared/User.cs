@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.IdGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,12 @@ namespace leaderboard.Shared
 {
     public class User
     {
-        public string Name { get; set; }
-        public string DiscrodId { get; set; }
+        [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
+        public string? Id { get; set; }
+        public string? DiscordId { get; set; }
+        public string? UserName { get; set; }
+        [BsonDefaultValue(false)]
+        public bool? IsAdmin { get; set; }
+        public string? ImageId { get; set; }
     }
 }

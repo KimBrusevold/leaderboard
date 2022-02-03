@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\DataProvider\DataProvider.csproj" />
     <ProjectReference Include="..\Client\leaderboard.Client.csproj" />
     <ProjectReference Include="..\Shared\leaderboard.Shared.csproj" />
   </ItemGroup>

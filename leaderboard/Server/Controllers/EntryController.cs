@@ -1,4 +1,5 @@
-﻿using leaderboard.Shared;
+﻿using leaderboard.DataProvider.Interfaces;
+using leaderboard.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -13,73 +14,96 @@ namespace leaderboard.Server.Controllers
     {
         private readonly IMongoDatabase Database;
         IMongoCollection<EntryCreateobj> EntryCollection;
+        ILeaderboardDataProvider DataProvider;
         private static FilterDefinitionBuilder<EntryCreateobj> FilterBuilder = Builders<EntryCreateobj>.Filter;
 
 
-        public EntryController(IMongoDatabase mongoDatabase)
+        public EntryController(IMongoDatabase mongoDatabase, ILeaderboardDataProvider dataProvider)
         {
             Database = mongoDatabase;
             EntryCollection = Database.GetCollection<EntryCreateobj>(CollectionNames.EntryCollection);
+            DataProvider = dataProvider;
         }
 
-
-        // GET: api/<EntryController>
         [HttpGet]
-        public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId, string? categoryId)
+        public async Task<IActionResult> Get(string? gameId)
         {
-            // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
-            var gameIdFilter = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
-            
-            FilterDefinition<EntryCreateobj> filter;
-
-            if(string.IsNullOrWhiteSpace(trackId) is false)
+            List<Entry> entries = null;
+            try
             {
-                filter = FilterBuilder.And(
-                    new FilterDefinition<EntryCreateobj>[2]{
-                        gameIdFilter,
-                        FilterBuilder.Eq(ent => ent.Track.Id, trackId)
-                    }
-                );
+                if (string.IsNullOrWhiteSpace(gameId) is false)
+                    entries = await DataProvider.GetEntries(gameId);
+                else
+                    entries =  await DataProvider.GetAllEntries();
+                
+
+
+                return Ok(entries);
             }
-            else
+            catch (Exception e)
             {
-                filter = gameIdFilter;
+                Console.WriteLine("EntryController.Get(): {0}", e);
+                return BadRequest("Something went wrong processing request. Contact page admin");
             }
-            
-            var entries = await EntryCollection.Find(filter)
-                .SortBy(e => e.Time)
-                .ToListAsync();
-            var userGroup = entries.GroupBy(ent => ent.User.Id);
-
-            var bestEntries = BestEntryByTime(userGroup);
-
-            if(string.IsNullOrWhiteSpace(categoryId) is false)
-            {
-                FilterByVehicleCategory(ref bestEntries, categoryId);
-            }
-
-
-            var timeSorted = bestEntries.OrderBy(x => x.Time);
-            for(int i = 0; i < timeSorted.Count(); i++)
-            {
-                timeSorted.ElementAt(i).Rank = i +1;
-            }
-             
-            return timeSorted;
         }
+
+        //// GET: api/<EntryController>
+        //[HttpGet]
+        //public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId, string? categoryId)
+        //{
+        //    // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
+        //    var gameIdFilter = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
+            
+        //    FilterDefinition<EntryCreateobj> filter;
+
+        //    if(string.IsNullOrWhiteSpace(trackId) is false)
+        //    {
+        //        filter = FilterBuilder.And(
+        //            new FilterDefinition<EntryCreateobj>[2]{
+        //                gameIdFilter,
+        //                FilterBuilder.Eq(ent => ent.Track.Id, trackId)
+        //            }
+        //        );
+        //    }
+        //    else
+        //    {
+        //        filter = gameIdFilter;
+        //    }
+            
+        //    var entries = await EntryCollection.Find(filter)
+        //        .SortBy(e => e.Time)
+        //        .ToListAsync();
+        //    var userGroup = entries.GroupBy(ent => ent.User.Id);
+
+        //    var bestEntries = BestEntryByTime(userGroup);
+
+        //    if(string.IsNullOrWhiteSpace(categoryId) is false)
+        //    {
+        //        FilterByVehicleCategory(ref bestEntries, categoryId);
+        //    }
+
+
+        //    var timeSorted = bestEntries.OrderBy(x => x.Time);
+        //    for(int i = 0; i < timeSorted.Count(); i++)
+        //    {
+        //        timeSorted.ElementAt(i).Rank = i +1;
+        //    }
+             
+        //    return timeSorted;
+        //}
 
         
 
         // POST api/<EntryController>
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Shared.Createobjects.Entry value)
+        public async Task<IActionResult> Post([FromBody] Shared.Entry value)
         {
             var userCollection = Database.GetCollection<Shared.RetrieveObjects.User>(CollectionNames.UserCollection);
 
             var userBuilder = Builders<Shared.RetrieveObjects.User>.Filter;
 
-            var filter = userBuilder.Eq("DiscordId", value.User.DiscrodId);
+            var filter = userBuilder.Eq("DiscordId", value.User.DiscordId);
             var user = await userCollection.Find(filter).FirstOrDefaultAsync();
 
             if(user is null)

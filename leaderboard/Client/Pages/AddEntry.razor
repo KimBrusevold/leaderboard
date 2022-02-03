@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using leaderboard.Shared
-@using leaderboard.Shared.Createobjects
 @using System.Text.RegularExpressions
 
 @inject HttpClient Client
@@ -148,8 +147,8 @@
         
         User user = new()
         {
-            DiscrodId = idClaim.Value,
-            Name = nameClaim.Value
+            DiscordId = idClaim.Value,
+            UserName = nameClaim.Value
         };
 
         double seconds = double.Parse(secondsString);
