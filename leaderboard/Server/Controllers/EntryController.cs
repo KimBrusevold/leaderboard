@@ -26,17 +26,24 @@ namespace leaderboard.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(string? gameId)
+        public async Task<IActionResult> Get(string? gameId, string? trackId, string? categoryId)
         {
             List<Entry> entries = null;
+
+            var hasGame = string.IsNullOrWhiteSpace(gameId) is false;
+            var hasTrack = string.IsNullOrWhiteSpace(trackId) is false;
+            var hasCategory = string.IsNullOrWhiteSpace(categoryId) is false;
+
             try
             {
-                if (string.IsNullOrWhiteSpace(gameId) is false)
+                if (hasGame && hasTrack is false && hasCategory is false)
                     entries = await DataProvider.GetEntries(gameId);
+                else if(hasGame && hasTrack && hasCategory is false)
+                    entries = await DataProvider.GetEntries(gameId, trackId);
+                else if(hasGame && hasTrack && hasCategory)
+                    entries = await DataProvider.GetEntries(gameId, trackId, categoryId);
                 else
                     entries =  await DataProvider.GetAllEntries();
-                
-
 
                 return Ok(entries);
             }
