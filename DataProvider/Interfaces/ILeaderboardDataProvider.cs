@@ -10,6 +10,8 @@ namespace leaderboard.DataProvider.Interfaces;
 public interface ILeaderboardDataProvider
 {
     public Task<List<Entry>> GetAllEntries();
-    public Task<List<Entry>> GetEntries(string game);
+    public Task<List<Entry>> GetEntries(string gameId);
+    public Task<List<Entry>> GetEntries(string gameId, string trackId);
+    public Task<List<Entry>> GetEntries(string gameId, string trackId, string categoryId);
 
 }
