@@ -1,4 +1,5 @@
-﻿using leaderboard.DataProvider.Interfaces;
+﻿using leaderboard.DataProvider.Data;
+using leaderboard.DataProvider.Interfaces;
 using leaderboard.Shared;
 using MongoDB.Driver;
 
@@ -6,99 +7,17 @@ namespace leaderboard.DataProvider;
 public class LeaderboardProvider : ILeaderboardDataProvider
 {
     private IMongoDatabase Database { get; init; }    
-    
+    private IEntryProvider Entries;
     public LeaderboardProvider(string connectionString)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionString);
 
         var client = new MongoClient(settings);
         Database = client.GetDatabase("leaderboard");
-
+        //"controllers"
+        Entries = new Entries(Database);
     }
 
-    public async Task<List<Entry>> GetAllEntries()
-        =>  await GetFromCollection<Entry>(DBCollectionNames.EntryCollection).ToListAsync();
-    
-    public async Task<List<Entry>> GetEntries(string gameId)
-    {
-        var filter = Builders<Entry>.Filter.Eq(ent => ent.Game.Id, gameId);
-        var entries = await GetFromCollection<Entry>(DBCollectionNames.EntryCollection, filter)
-            .SortByDescending(entry=> entry.Time)
-            .ToListAsync();
-
-        if(entries == null || entries.Count() <= 0)
-            return null;
-
-        return SortByBestTimePerUser(entries);
-    }
-
-    public async Task<List<Entry>> GetEntries(string gameId, string trackId)
-    {
-        var filter = Builders<Entry>.Filter.Eq(ent => ent.Game.Id, gameId);
-        var trackFilter = Builders<Entry>.Filter.Eq(ent=> ent.Track.Id, trackId);
-
-        var gameAndTrackFilter = Builders<Entry>.Filter.And(filter, trackFilter);
-
-        var entries = await GetFromCollection<Entry>(DBCollectionNames.EntryCollection, gameAndTrackFilter)
-            .SortBy(ent => ent.Time)
-            .ToListAsync();
-
-        var sorted = SortByBestTimePerUser(entries);
-
-        return sorted;
-    }
-
-    public async Task<List<Entry>> GetEntries(string gameId, string trackId, string categoryId)
-    {
-        var filter = Builders<Entry>.Filter.Eq(ent => ent.Game.Id, gameId);
-        var trackFilter = Builders<Entry>.Filter.Eq(ent=> ent.Track.Id, trackId);
-        var categoryFilter = Builders<Entry>.Filter.Eq(ent=> ent.Vehicle.Category.Id, categoryId);
-
-        var gameAndTrackFilter = Builders<Entry>.Filter.And(filter, trackFilter, categoryFilter);
-
-        var entries = await GetFromCollection<Entry>(DBCollectionNames.EntryCollection, gameAndTrackFilter)
-            .SortBy(ent => ent.Time)
-            .ToListAsync();
-
-        var sorted = SortByBestTimePerUser(entries);
-
-        return sorted;
-    }
-
-    /// <summary>
-    /// With just a collectionName, gets every object in collection
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="collectionName"></param>
-    /// <param name="filter"></param>
-    /// <returns></returns>
-    private IFindFluent<T, T> GetFromCollection<T>(in string collectionName, FilterDefinition<T>? filter = null)
-    {
-        var collection = Database.GetCollection<T>(collectionName);
-
-        if (filter is null)
-            filter = Builders<T>.Filter.Empty;
-
-        return collection.Find(filter);
-    }
-
-    private List<Entry> SortByBestTimePerUser(in IEnumerable<Entry> entries)
-    {
-        if(entries is null)
-            return null;
-
-        IEnumerable<IGrouping<string, Entry>> userGroup = entries.GroupBy(ent => ent.User.Id);
-        List<Entry> bestPerPlayerList = new (userGroup.Count());
-        
-        foreach (var userEntries in userGroup)
-        {            
-            if(string.IsNullOrWhiteSpace(userEntries.Key))
-                continue;
-
-            bestPerPlayerList.Add(userEntries.First());
-        }
-        return bestPerPlayerList;
-    }
-
-    
+    IEntryProvider ILeaderboardDataProvider.Entries()
+        => Entries;
 }

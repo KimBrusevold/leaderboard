@@ -37,13 +37,13 @@ namespace leaderboard.Server.Controllers
             try
             {
                 if (hasGame && hasTrack is false && hasCategory is false)
-                    entries = await DataProvider.GetEntries(gameId);
+                    entries = await DataProvider.Entries().Filter(gameId);
                 else if(hasGame && hasTrack && hasCategory is false)
-                    entries = await DataProvider.GetEntries(gameId, trackId);
+                    entries = await DataProvider.Entries().Filter(gameId, trackId);
                 else if(hasGame && hasTrack && hasCategory)
-                    entries = await DataProvider.GetEntries(gameId, trackId, categoryId);
+                    entries = await DataProvider.Entries().Filter(gameId, trackId, categoryId);
                 else
-                    entries =  await DataProvider.GetAllEntries();
+                    entries =  await DataProvider.Entries().All();
 
                 return Ok(entries);
             }
@@ -53,52 +53,6 @@ namespace leaderboard.Server.Controllers
                 return BadRequest("Something went wrong processing request. Contact page admin");
             }
         }
-
-        //// GET: api/<EntryController>
-        //[HttpGet]
-        //public async Task <IEnumerable<Shared.RetrieveObjects.Entry>> Get(string gameId, string? trackId, string? categoryId)
-        //{
-        //    // var filter = FilterBuilder.Eq(x => x.Game.Id, gameId);
-        //    var gameIdFilter = FilterBuilder.Eq(ent => ent.Game.Id, gameId);
-            
-        //    FilterDefinition<EntryCreateobj> filter;
-
-        //    if(string.IsNullOrWhiteSpace(trackId) is false)
-        //    {
-        //        filter = FilterBuilder.And(
-        //            new FilterDefinition<EntryCreateobj>[2]{
-        //                gameIdFilter,
-        //                FilterBuilder.Eq(ent => ent.Track.Id, trackId)
-        //            }
-        //        );
-        //    }
-        //    else
-        //    {
-        //        filter = gameIdFilter;
-        //    }
-            
-        //    var entries = await EntryCollection.Find(filter)
-        //        .SortBy(e => e.Time)
-        //        .ToListAsync();
-        //    var userGroup = entries.GroupBy(ent => ent.User.Id);
-
-        //    var bestEntries = BestEntryByTime(userGroup);
-
-        //    if(string.IsNullOrWhiteSpace(categoryId) is false)
-        //    {
-        //        FilterByVehicleCategory(ref bestEntries, categoryId);
-        //    }
-
-
-        //    var timeSorted = bestEntries.OrderBy(x => x.Time);
-        //    for(int i = 0; i < timeSorted.Count(); i++)
-        //    {
-        //        timeSorted.ElementAt(i).Rank = i +1;
-        //    }
-             
-        //    return timeSorted;
-        //}
-
         
 
         // POST api/<EntryController>
