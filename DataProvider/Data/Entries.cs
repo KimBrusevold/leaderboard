@@ -20,17 +20,17 @@ namespace leaderboard.DataProvider.Data
             =>  await GetFromCollection<Entry>(DBCollectionNames.EntryCollection).ToListAsync();
 
          public async Task<List<Entry>> Filter(string gameId)
-    {
-        var filter = Builders<Entry>.Filter.Eq(ent => ent.Game.Id, gameId);
-        var entries = await GetFromCollection<Entry>(DBCollectionNames.EntryCollection, filter)
-            .SortByDescending(entry=> entry.Time)
-            .ToListAsync();
+        {
+            var filter = Builders<Entry>.Filter.Eq(ent => ent.Game.Id, gameId);
+            var entries = await GetFromCollection<Entry>(DBCollectionNames.EntryCollection, filter)
+                .SortByDescending(entry=> entry.Time)
+                .ToListAsync();
 
-        if(entries == null || entries.Count() <= 0)
-            return null;
+            if(entries == null || entries.Count() <= 0)
+                return null;
 
-        return SortByBestTimePerUser(entries);
-    }
+            return SortByBestTimePerUser(entries);
+        }
 
     public async Task<List<Entry>> Filter(string gameId, string trackId)
     {
