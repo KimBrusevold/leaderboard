@@ -1,12 +1,12 @@
-name: Build and deploy .NET Core app to Linux WebApp leaderboardServer
+name: Build and deploy .NET Core app to Linux WebApp racingleaderboard
 on:
   push:
     branches:
     - master
 env:
-  AZURE_WEBAPP_NAME: leaderboardServer
+  AZURE_WEBAPP_NAME: racingleaderboard
   AZURE_WEBAPP_PACKAGE_PATH: leaderboard/Server/publish
-  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.leaderboardServer_b331 }}
+  AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.racingleaderboard_46ed }}
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: leaderboard/Server
