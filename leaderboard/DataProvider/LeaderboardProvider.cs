@@ -8,6 +8,7 @@ public class LeaderboardProvider : ILeaderboardDataProvider
 {
     private IMongoDatabase Database { get; init; }    
     private IEntryProvider Entries;
+    private IUserProvider Users;
     public LeaderboardProvider(string connectionString)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionString);
@@ -15,9 +16,13 @@ public class LeaderboardProvider : ILeaderboardDataProvider
         var client = new MongoClient(settings);
         Database = client.GetDatabase("leaderboard");
         //"controllers"
-        Entries = new Entries(Database);
+        Entries = new Entries(Database, this);
+        Users = new Users(Database);
     }
 
     IEntryProvider ILeaderboardDataProvider.Entries()
         => Entries;
+
+    IUserProvider ILeaderboardDataProvider.Users()
+    => Users;
 }

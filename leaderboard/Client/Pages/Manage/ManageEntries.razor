@@ -1,2 +1,59 @@
 @page "/profile/entries"
+@attribute [Authorize]
 
+@using leaderboard.Shared
+@using leaderboard.Client.Toolbox
+@using Microsoft.AspNetCore.Authorization
+
+@inject HttpClient Client
+@inject IAuthenticationService AuthService
+
+<MudGrid>
+    <MudItem sm="6">
+        <MudPaper>
+        <MudList>
+            @if(entries != null)
+            {
+                @foreach (var item in entries)
+                {
+                    <MudListItem >
+                        @item.ToString()
+                    </MudListItem>
+                }
+            }
+        </MudList>
+        </MudPaper>
+    </MudItem>
+    <MudItem sm="6">
+        <MudPaper>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+
+
+@code{
+    [CascadingParameter]
+    Task<AuthenticationState> authenticationStateTask {get; set;}
+
+    IEnumerable<Entry>? entries;
+        
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await authenticationStateTask;
+
+        foreach (var item in state.User.Claims)
+        {
+            System.Console.WriteLine(item.Value);
+        }
+        var discordId = AuthService.GetUserDiscordIdClaim(state);
+
+        if(string.IsNullOrWhiteSpace(discordId))
+            return; //TODO: Should also provide an error on page
+
+		entries = await Client.GetFromJsonAsync<IEnumerable<Entry>?>($"api/entry?discordId={discordId}");
+        
+        var trackIds = entries.GroupBy(entries => entries.Track.Id).Select(group => group.Key);
+    }
+}

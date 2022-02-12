@@ -152,9 +152,6 @@
         };
 
         double seconds = double.Parse(secondsString);
-
-        seconds = seconds + minutes*60;
-        var time = TimeSpan.FromSeconds(seconds);
         
         Entry entry = new()
             {
@@ -162,7 +159,7 @@
                 Track = selectedTrack,
                 Vehicle= selectedVehicle,
                 User = user,
-                Time = time
+                Time = seconds
             };
         try
         {

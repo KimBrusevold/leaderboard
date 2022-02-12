@@ -26,24 +26,33 @@ namespace leaderboard.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(string? gameId, string? trackId, string? categoryId)
+        public async Task<IActionResult> Get(string? discordId, string? gameId, string? trackId, string? categoryId)
         {
-            List<Entry> entries = null;
+            List<Entry>? entries = null;
 
             var hasGame = string.IsNullOrWhiteSpace(gameId) is false;
             var hasTrack = string.IsNullOrWhiteSpace(trackId) is false;
             var hasCategory = string.IsNullOrWhiteSpace(categoryId) is false;
+            
+            string? userId = null;
+
+            if(string.IsNullOrWhiteSpace(discordId))
+            {
+                var user = await DataProvider.Users().GetByDiscrodId(discordId);
+                userId = user?.Id;
+            }
+
 
             try
             {
                 if (hasGame && hasTrack is false && hasCategory is false)
-                    entries = await DataProvider.Entries().Filter(gameId);
+                    entries = await DataProvider.Entries().Filter(gameId, userId);
                 else if(hasGame && hasTrack && hasCategory is false)
-                    entries = await DataProvider.Entries().Filter(gameId, trackId);
+                    entries = await DataProvider.Entries().Filter(gameId, trackId, userId);
                 else if(hasGame && hasTrack && hasCategory)
-                    entries = await DataProvider.Entries().Filter(gameId, trackId, categoryId);
+                    entries = await DataProvider.Entries().Filter(gameId, trackId, categoryId, userId);
                 else
-                    entries =  await DataProvider.Entries().All();
+                    entries =  await DataProvider.Entries().All(userId);
 
                 return Ok(entries);
             }
@@ -83,7 +92,7 @@ namespace leaderboard.Server.Controllers
                         Id = value.Game.Id,
                         Name = value.Game.Name
                     },
-                    Time = value.Time.TotalSeconds,
+                    Time = value.Time,
                     Created = DateTime.UtcNow
                 };
 

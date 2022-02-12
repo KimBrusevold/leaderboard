@@ -17,5 +17,6 @@ namespace leaderboard.Shared
         [BsonDefaultValue(false)]
         public bool? IsAdmin { get; set; }
         public string? ImageId { get; set; }
+        public DateTime? CreatedOn { get; set; }
     }
 }

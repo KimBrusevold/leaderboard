@@ -56,6 +56,8 @@ public class AuthenticationService : IAuthenticationService
 
     public string? GetUserDiscordIdClaim(AuthenticationState state)
         => GetClaimValue(state.User.Claims, "DiscordId");
+    // public string? GetUserIdClaim(AuthenticationState state)
+    //     => GetClaimValue(state.User.Claims, ClaimTypes.);
     
 
     private string? GetClaimValue(IEnumerable<Claim> claims, string type)

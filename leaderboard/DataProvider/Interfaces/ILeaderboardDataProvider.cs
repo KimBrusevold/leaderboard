@@ -10,4 +10,5 @@ namespace leaderboard.DataProvider.Interfaces;
 public interface ILeaderboardDataProvider
 {    
     public IEntryProvider Entries();
+    public IUserProvider Users();
 }

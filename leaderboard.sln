@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "leaderboard.Client", "leade
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "leaderboard.Shared", "leaderboard\Shared\leaderboard.Shared.csproj", "{0A20E4EB-C47B-4F26-B197-D2AF735F92F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProvider", "DataProvider\DataProvider.csproj", "{2105C21B-CA64-414C-8794-43B9A6B09AEC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProvider", "leaderboard\DataProvider\DataProvider.csproj", "{2105C21B-CA64-414C-8794-43B9A6B09AEC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

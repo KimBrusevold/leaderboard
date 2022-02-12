@@ -1,7 +1,5 @@
 ﻿@page "/"
 @using leaderboard.Shared
-@using Microsoft.AspNetCore.Authorization
-@using leaderboard.Shared.RetrieveObjects
 @using Entry = leaderboard.Shared.RetrieveObjects.Entry
 @using System.Diagnostics
 
@@ -23,7 +21,6 @@
 	<MudItem xs="12" sm="6" md="4">
 		<MudSelect ValueChanged="FilterByCategory" T="string" Label="Categories" AnchorOrigin="Origin.BottomCenter">
 			<MudSelectItem T="string" Value="@ALL_CATEGORIES">All Time Best</MudSelectItem>
-
 			@foreach (var cat in categories)
 			{
 				@if(cat is not null){
@@ -84,6 +81,7 @@
 		tracks = await Client.GetFromJsonAsync<IEnumerable<Track>>($"api/track?gameId={gameId}");
 		categories = await Client.GetFromJsonAsync<IEnumerable<Category>>($"api/category");
     }
+
 	private string GetDiff(Entry entry)
 	{
 
@@ -94,6 +92,7 @@
 
 		return $"+{diff.TotalSeconds}";
 	}
+
 	async Task<IEnumerable<Track>> SearchTrack(string searchString)
 	{
 
@@ -125,6 +124,7 @@
 			fastest = TimeSpan.MinValue;
 			return;
 		}
+
 		selectedTrack = track;
 		var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={track.Id}");
 
@@ -138,6 +138,7 @@
 		fastest = gottenEnt.First().Time;
 		entries = gottenEnt;		
 	}
+
 	async Task FilterByCategory(string selectedCategoryId)
 	{
 		if(string.IsNullOrWhiteSpace(selectedCategoryId) || selectedTrack is null)
@@ -148,7 +149,9 @@
 			await GetEntries(selectedTrack);
 			return;
 		}
+
 		var gottenEnt = await Client.GetFromJsonAsync<IEnumerable<Entry>>($"api/entry?gameId={gameId}&trackId={selectedTrack.Id}&categoryId={selectedCategoryId}");
+
 		if (gottenEnt == null || gottenEnt.Count() == 0)
 		{
 			entries = null;
@@ -157,7 +160,6 @@
 		}
 
 		fastest = gottenEnt.First().Time;
-		entries = gottenEnt;
+		entries = gottenEnt;	
 	}
-
 }

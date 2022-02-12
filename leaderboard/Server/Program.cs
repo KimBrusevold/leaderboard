@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using leaderboard.DataProvider;
 using leaderboard.DataProvider.Interfaces;
 
