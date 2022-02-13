@@ -25,7 +25,7 @@ namespace leaderboard.Server.Controllers
         public LoginController(IConfiguration configuration, IMongoDatabase mongoDatabase, ILogger<LoginController> logger)
         {
             Configuration = configuration;
-            MainDiscordApiUri = new Uri((string)Configuration["Discord:url"]);
+            MainDiscordApiUri = new Uri((string)Configuration["discordapiurl"]);
             Database = mongoDatabase;
             Logger = logger;
         }
@@ -43,11 +43,11 @@ namespace leaderboard.Server.Controllers
         {
             var formData = new Dictionary<string, string>
             {
-                {"client_id", Configuration["discord-clientId"] },
-                {"client_secret", Configuration["discord-clientSecret"] },
+                {"client_id", Configuration["clientId"] },
+                {"client_secret", Configuration["clientSecret"] },
                 {"grant_type", "authorization-code" },
                 {"code", data.Code },
-                {"redirect_uri", Configuration["discord-redirectUri"] },
+                {"redirect_uri", Configuration["redirectUri"] },
             };
 
             var form = new FormUrlEncodedContent(formData);
