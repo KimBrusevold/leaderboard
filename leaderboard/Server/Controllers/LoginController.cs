@@ -43,11 +43,11 @@ namespace leaderboard.Server.Controllers
         {
             var formData = new Dictionary<string, string>
             {
-                {"client_id", Configuration["discord_clientId"] },
-                {"client_secret", Configuration["discord_clientSecret"] },
-                {"grant_type", "authorization_code" },
+                {"client_id", Configuration["discord-clientId"] },
+                {"client_secret", Configuration["discord-clientSecret"] },
+                {"grant_type", "authorization-code" },
                 {"code", data.Code },
-                {"redirect_uri", Configuration["discord_redirectUri"] },
+                {"redirect_uri", Configuration["discord-redirectUri"] },
             };
 
             var form = new FormUrlEncodedContent(formData);
