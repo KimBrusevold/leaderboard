@@ -35,13 +35,13 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuer = true,
             ValidateAudience = true,
             RequireSignedTokens = true, 
-            ValidAudience = builder.Configuration["JWT:aud"],
-            ValidIssuer = builder.Configuration["JWT:iss"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:key"]))
+            ValidAudience = builder.Configuration["jwt_aud"],
+            ValidIssuer = builder.Configuration["jwt_iss"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["jwt_key"]))
         };
     });
 
-var settings = MongoClientSettings.FromConnectionString(builder.Configuration["ConnectionStrings:mongoSandbox"]);
+var settings = MongoClientSettings.FromConnectionString(builder.Configuration["connectionstring_mongoSandbox"]);
 
 var client = new MongoClient(settings);
 IMongoDatabase database = client.GetDatabase("leaderboard");
