@@ -45,7 +45,7 @@ namespace leaderboard.Server.Controllers
             {
                 {"client_id", Configuration["clientId"] },
                 {"client_secret", Configuration["clientSecret"] },
-                {"grant_type", "authorization-code" },
+                {"grant_type", "authorization_code" },
                 {"code", data.Code },
                 {"redirect_uri", Configuration["redirectUri"] },
             };
@@ -87,12 +87,12 @@ namespace leaderboard.Server.Controllers
 
 
 
-            var secretKey = Configuration["JWT:key"];
+            var secretKey = Configuration["key"];
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var token = new JwtSecurityToken(
-                issuer: Configuration["JWT:iss"],
-                audience: Configuration["JWT:aud"],
+                issuer: Configuration["iss"],
+                audience: Configuration["aud"],
                 expires: DateTime.Now.AddMonths(6),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
